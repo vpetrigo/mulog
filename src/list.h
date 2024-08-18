@@ -40,7 +40,7 @@ struct list_node {
 
 #define LIST_HEAD_INIT_VAR   {.first = NULL}
 #define LIST_HEAD_INIT(name) ((name)->first = NULL)
-#define LIST_HEAD(name)      struct list_head name = LIST_HEAD_INIT_VAR;
+#define LIST_HEAD(name)      struct list_head name = LIST_HEAD_INIT_VAR
 #define LIST_HEAD_VAR(name)  struct list_head name
 
 #define LIST_NODE_INIT(node)        ((node)->next = NULL, (node)->prev = NULL)

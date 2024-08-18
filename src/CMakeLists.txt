@@ -1,0 +1,1 @@
+cpputest_register_test(list)
