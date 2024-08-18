@@ -5,6 +5,14 @@ include(FetchContent)
 
 set(CMAKE_C_STANDARD 11)
 
+option(MULOG_ENABLE_TESTING "Enable tests for mulog library" OFF)
+
+if (MULOG_ENABLE_TESTIN)
+    enable_testing()
+
+    add_subdirectory(external/cpputest/)
+endif ()
+
 set(BUILD_SHARED_LIBS OFF)
 FetchContent_Declare(printf_library
         GIT_REPOSITORY https://github.com/eyalroz/printf.git
