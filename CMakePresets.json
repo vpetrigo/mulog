@@ -11,7 +11,10 @@
       "displayName": "Default Config",
       "description": "Default build using Ninja generator",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/cmake-build-default"
+      "binaryDir": "${sourceDir}/cmake-build-default",
+      "cacheVariables": {
+        "MULOG_ENABLE_TESTING": "ON"
+      }
     }
   ],
   "buildPresets": [

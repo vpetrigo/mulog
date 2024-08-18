@@ -2,15 +2,19 @@ cmake_minimum_required(VERSION 3.23)
 project(mulog)
 
 include(FetchContent)
+include(cmake/cpputest_utils.cmake)
 
 set(CMAKE_C_STANDARD 11)
 
 option(MULOG_ENABLE_TESTING "Enable tests for mulog library" OFF)
 
-if (MULOG_ENABLE_TESTIN)
+if (MULOG_ENABLE_TESTING)
+    include(CTest)
     enable_testing()
-
+    # Disable CppUTest related tests
+    set(TESTS OFF)
     add_subdirectory(external/cpputest/)
+    add_subdirectory(src/)
 endif ()
 
 set(BUILD_SHARED_LIBS OFF)
