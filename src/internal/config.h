@@ -7,9 +7,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define MULOG_ENABLE_TIMESTAMP (0) /**< Add timestamp to the log line */
-#define MULOG_ENABLE_COLOR     (0) /**< Enable color log lines */
-#define MULOG_OUTPUT_HANDLERS  (1) /**< Maximum number of output handlers that can be registered */
-#define MULOG_SINGLE_LINE_LEN  (128) /**< Maximum size of a single log line */
+#define MULOG_ENABLE_TIMESTAMP (MULOG_INTERNAL_ENABLE_COLOR_OUTPUT) /**< Add timestamp to the log line */
+#define MULOG_ENABLE_COLOR     (MULOG_INTERNAL_ENABLE_TIMESTAMP_OUTPUT) /**< Enable color log lines */
+#define MULOG_OUTPUT_HANDLERS  (MULOG_INTERNAL_OUTPUT_HANDLERS) /**< Maximum number of output handlers that can be registered */
 
 #endif /* CONFIG_H */
