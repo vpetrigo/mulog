@@ -77,11 +77,11 @@ TEST(ListTests, AddTwoItemsAndRemoveOne)
 
     CHECK(id == 2);
 
-    list_head_del(&node2);
+    list_head_del(&node1);
     id = 0;
 
     const list_node *const checks2[] = {
-        &node1,
+        &node2,
     };
 
     LIST_FOR_EACH(it, &head)
