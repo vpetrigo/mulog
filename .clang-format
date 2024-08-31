@@ -9,6 +9,7 @@ AllowAllArgumentsOnNextLine: false
 AllowAllConstructorInitializersOnNextLine: false
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: Never
+AllowShortEnumsOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: Never
@@ -18,6 +19,7 @@ AlwaysBreakAfterReturnType: None
 AlwaysBreakTemplateDeclarations: Yes
 BreakBeforeBraces: Custom
 BraceWrapping:
+  AfterExternBlock: false
   AfterCaseLabel: false
   AfterClass: false
   AfterControlStatement: Never
@@ -37,11 +39,12 @@ BreakInheritanceList: BeforeColon
 ColumnLimit: 100
 CompactNamespaces: false
 ContinuationIndentWidth: 4
+IndentExternBlock: NoIndent
 IndentCaseLabels: true
 IndentPPDirectives: None
 IndentWidth: 4
 InsertNewlineAtEOF: true
-KeepEmptyLinesAtTheStartOfBlocks: true
+KeepEmptyLinesAtTheStartOfBlocks: false
 MaxEmptyLinesToKeep: 2
 NamespaceIndentation: All
 ObjCSpaceAfterProperty: false
