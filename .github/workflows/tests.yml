@@ -18,11 +18,9 @@ jobs:
       - name: Install dependencies
         run: sudo apt install cmake gcovr ninja-build -y
       - name: Run tests with coverage options
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
           cmake --preset default
-          ctest --build-and-test . .\cmake-build-default\ --build-generator "Ninja" --test-command ctest -V
+          ctest --build-and-test . cmake-build-default --build-generator "Ninja" --test-command ctest -V
           cmake --build --preset default --target coverage
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v4
