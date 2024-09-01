@@ -268,6 +268,26 @@ TEST(MulogTestsWithBuffer, TestTooManyOutputs)
     }
 }
 
+TEST(MulogTestsWithBuffer, TestIncorrectLogLevel)
+{
+    constexpr std::string_view output{"Hello world"};
+    auto ret = mulog_add_output(test_output);
+    CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
+    ret = mulog_set_log_level(MULOG_LOG_LVL_TRACE);
+    CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
+    mock().expectNoCall("test_output");
+    auto chars_written = mulog_log(MULOG_LOG_LVL_COUNT, output.data());
+    CHECK(chars_written == 0);
+    mock().checkExpectations();
+
+    for (size_t i = 0; i < MULOG_LOG_LVL_COUNT; ++i) {
+        mock().expectOneCall("test_output").withParameter("buf", get_log_buffer());
+        chars_written = mulog_log(MULOG_LOG_LVL_TRACE, output.data());
+        CHECK(chars_written == output.size());
+        mock().checkExpectations();
+    }
+}
+
 int main(int argc, char *argv[])
 {
     return RUN_ALL_TESTS(argc, argv);
