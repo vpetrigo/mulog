@@ -251,10 +251,6 @@ enum mulog_ret_code mulog_remove_output(const mulog_log_output_fn output)
         return MULOG_RET_CODE_NOT_FOUND;
     }
 
-    if (handles.out_count == 0) {
-        LIST_HEAD_INIT(&handles.out_functions);
-    }
-
     return MULOG_RET_CODE_OK;
 }
 
