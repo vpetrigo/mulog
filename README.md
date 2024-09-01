@@ -1,4 +1,5 @@
 [![codecov](https://codecov.io/gh/vpetrigo/mulog/graph/badge.svg?token=V29ApsX9FN)](https://codecov.io/gh/vpetrigo/mulog)
+[![tests](https://github.com/vpetrigo/mulog/actions/workflows/tests.yml/badge.svg)](https://github.com/vpetrigo/mulog/actions/workflows/tests.yml)
 
 # Mulog - simple logger for embedded systems
 
