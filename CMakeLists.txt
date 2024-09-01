@@ -25,7 +25,7 @@ if (MULOG_ENABLE_TESTING)
     add_custom_target(coverage
             COMMAND gcovr -r ${CMAKE_CURRENT_LIST_DIR}/src . -e ".*_test.cpp"
             -e ".*main.c"
-            --html-theme github.dark-blue --html-details coverage.html --cobertura coverage.info)
+            --html-details coverage.html --cobertura coverage.info)
 endif ()
 
 set(BUILD_SHARED_LIBS OFF)
