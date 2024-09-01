@@ -272,7 +272,7 @@ MULOG_PRINTF_ATTR int mulog_log(const enum mulog_log_level level, const char *fm
     va_start(args, fmt);
 
     if (list_head_empty(&handles.out_functions) || logger_ctx.log_buffer == NULL ||
-        logger_ctx.log_buffer_size == 0) {
+        logger_ctx.log_buffer_size == 0 || level >= MULOG_LOG_LVL_COUNT) {
         va_end(args);
         return 0;
     }
