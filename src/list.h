@@ -49,12 +49,12 @@ struct list_node {
 #define LIST_ENTRY(ptr, type, member) container_of(ptr, type, member)
 #define LIST_FOR_EACH(ptr, head)      for ((ptr) = (head)->first; (ptr) != NULL; (ptr) = (ptr)->next)
 
-inline int list_head_empty(const struct list_head *head)
+static inline int list_head_empty(const struct list_head *head)
 {
     return head->first == NULL;
 }
 
-inline void list_head_add(struct list_head *head, struct list_node *node)
+static inline void list_head_add(struct list_head *head, struct list_node *node)
 {
     struct list_node *h = head->first;
 
@@ -68,7 +68,7 @@ inline void list_head_add(struct list_head *head, struct list_node *node)
     node->prev = &head->first;
 }
 
-inline void list_head_del(struct list_node *node)
+static inline void list_head_del(struct list_node *node)
 {
     struct list_node *next = node->next;
     struct list_node **prev = node->prev;

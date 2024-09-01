@@ -20,6 +20,19 @@ TEST(ListTests, EmptyList)
     CHECK_TRUE(list_head_empty(&head));
 }
 
+TEST(ListTests, AddOneItem)
+{
+    LIST_HEAD(head);
+
+    list_node node{};
+
+    LIST_NODE_INIT(&node);
+    list_head_add(&head, &node);
+    CHECK_FALSE(list_head_empty(&head));
+    list_head_del(&node);
+    CHECK_TRUE(list_head_empty(&head));
+}
+
 TEST(ListTests, AddTwoItem)
 {
     LIST_HEAD(head);
@@ -77,11 +90,11 @@ TEST(ListTests, AddTwoItemsAndRemoveOne)
 
     CHECK(id == 2);
 
-    list_head_del(&node1);
+    list_head_del(&node2);
     id = 0;
 
     const list_node *const checks2[] = {
-        &node2,
+        &node1,
     };
 
     LIST_FOR_EACH(it, &head)
