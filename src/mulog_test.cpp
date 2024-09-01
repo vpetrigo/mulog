@@ -33,17 +33,16 @@ namespace {
     }
 } // namespace
 
-// clang-format off
-
 TEST_GROUP(MulogTests)
 {
-    void teardown() override{
+    int unused_{}; // this value is here to prevent clang-format from breaking formatting
+
+    void teardown() override
+    {
         mulog_remove_all_outputs();
         mock().clear();
     }
 };
-
-// clang-format on
 
 TEST(MulogTests, TestNoLogBuffer)
 {
