@@ -98,7 +98,7 @@ enum mulog_ret_code mulog_remove_output(mulog_log_output_fn output);
 /**
  * \brief Remove all registered outputs
  */
-enum mulog_ret_code mulog_remove_all_outputs(void);
+void mulog_remove_all_outputs(void);
 
 /**
  * \brief 

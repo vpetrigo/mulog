@@ -107,7 +107,7 @@ static enum mulog_ret_code add_output(const mulog_log_output_fn output,
 
     struct out_function *fn = NULL;
 
-    for (size_t i = 0; i < ARRAY_SIZE(handles.fns); i++) {
+    for (size_t i = 0; i < ARRAY_SIZE(handles.fns); ++i) {
         if (LIST_NODE_IS_DANGLING(&handles.fns[i].node)) {
             fn = &handles.fns[i];
             break;
@@ -136,7 +136,7 @@ static size_t get_num_outputs_above_level(const enum mulog_log_level log_level)
     {
         const struct out_function *out = LIST_ENTRY(it, struct out_function, node);
 
-        if (out->log_level >= log_level) {
+        if (out->log_level <= log_level) {
             ++logger_count;
         }
     }
@@ -152,7 +152,7 @@ static void output_log_entry(const enum mulog_log_level log_level, const char *b
     {
         const struct out_function *fn = LIST_ENTRY(it, struct out_function, node);
 
-        if (fn->log_level >= log_level) {
+        if (fn->log_level <= log_level) {
             fn->output(buf);
         }
     }
@@ -258,18 +258,15 @@ enum mulog_ret_code mulog_remove_output(const mulog_log_output_fn output)
     return MULOG_RET_CODE_OK;
 }
 
-enum mulog_ret_code mulog_remove_all_outputs(void)
+void mulog_remove_all_outputs(void)
 {
     struct list_node *it = NULL;
+    struct list_node *temp = NULL;
 
-    LIST_FOR_EACH(it, &handles.out_functions)
+    LIST_FOR_EACH_SAFE(it, temp, &handles.out_functions)
     {
         list_head_del(it);
     }
-
-    LIST_HEAD_INIT(&handles.out_functions);
-
-    return MULOG_RET_CODE_OK;
 }
 
 MULOG_PRINTF_ATTR int mulog_log(const enum mulog_log_level level, const char *fmt, ...)
