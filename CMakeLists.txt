@@ -15,10 +15,17 @@ set(MULOG_CUSTOM_CONFIG "" CACHE STRING "Optional path to an external config fil
 if (MULOG_ENABLE_TESTING)
     include(CTest)
     enable_testing()
+    add_compile_options(--coverage)
+    add_link_options(--coverage)
     # Disable CppUTest related tests
     set(TESTS OFF CACHE BOOL "Overwrite CppUTest TESTS variable")
     add_subdirectory(external/cpputest/)
     add_subdirectory(src/)
+
+    add_custom_target(coverage
+            COMMAND gcovr -r ${CMAKE_CURRENT_LIST_DIR}/src . -e ".*_test.cpp"
+            -e ".*main.c"
+            --html-theme github.dark-blue --html-details coverage.html --cobertura coverage.info)
 endif ()
 
 set(BUILD_SHARED_LIBS OFF)
