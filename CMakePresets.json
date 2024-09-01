@@ -13,6 +13,7 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/cmake-build-default",
       "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
         "MULOG_ENABLE_TESTING": "ON"
       }
     }
