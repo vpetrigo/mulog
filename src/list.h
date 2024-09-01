@@ -48,6 +48,8 @@ struct list_node {
 
 #define LIST_ENTRY(ptr, type, member) container_of(ptr, type, member)
 #define LIST_FOR_EACH(ptr, head)      for ((ptr) = (head)->first; (ptr) != NULL; (ptr) = (ptr)->next)
+#define LIST_FOR_EACH_SAFE(ptr, n, head)                                                           \
+    for ((ptr) = (head)->first; (ptr) != NULL && ((n) = (ptr)->next, 1); (ptr) = (n))
 
 static inline int list_head_empty(const struct list_head *head)
 {
