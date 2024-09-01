@@ -5,12 +5,12 @@
  */
 #include "mulog.h"
 
+#include <array>
+#include <iostream>
+
 #include <CppUTest/CommandLineTestRunner.h>
 #include <CppUTest/TestHarness_c.h>
 #include <CppUTestExt/MockSupport.h>
-
-#include <array>
-#include <iostream>
 
 namespace {
     void test_output(const char *buf)

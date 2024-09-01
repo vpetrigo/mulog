@@ -1,15 +1,15 @@
 /**
  * \file
- * \brief
- * \author
+ * \brief Linked list tests
+ * \author Vladimir Petrigo
  */
 #include "list.h"
 
-#include <CppUTest/CommandLineTestRunner.h>
-#include <CppUTest/TestHarness_c.h>
-
 #include <algorithm>
 #include <array>
+
+#include <CppUTest/CommandLineTestRunner.h>
+#include <CppUTest/TestHarness_c.h>
 
 TEST_GROUP(ListTests){};
 
