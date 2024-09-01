@@ -16,7 +16,9 @@ jobs:
         with:
           submodules: true
       - name: Install dependencies
-        run: sudo apt install cmake gcovr ninja-build -y
+        run: sudo apt install cmake ninja-build -y
+      - name: Install gcovr
+        run: sudo pip install gcovr
       - name: Run tests with coverage options
         run: |
           cmake --preset default
