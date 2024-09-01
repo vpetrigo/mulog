@@ -256,6 +256,19 @@ TEST(MulogTestsWithBuffer, TestPerOutputLogLevel)
     CHECK_EQUAL_C_STRING("[ERROR]: 345", buffer.data());
 }
 
+TEST(MulogTestsWithBuffer, TestTooManyOutputs)
+{
+    auto ret = mulog_add_output(test_output);
+    CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
+    ret = mulog_add_output(test_output);
+    CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
+
+    for (size_t i = 0; i < 100; ++i) {
+        ret = mulog_add_output(test_output);
+        CHECK_EQUAL(MULOG_RET_CODE_NO_MEM, ret);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     return RUN_ALL_TESTS(argc, argv);
