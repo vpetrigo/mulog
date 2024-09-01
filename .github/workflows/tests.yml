@@ -24,10 +24,9 @@ jobs:
           cmake --preset default
           ctest --build-and-test . cmake-build-default --build-generator "Ninja" --test-command ctest -V
           cmake --build --preset default --target coverage
-      - name: Upload Codecov report
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        run: |
-          curl -Os https://uploader.codecov.io/latest/linux/codecov
-          chmod +x codecov
-          ./codecov -t ${CODECOV_TOKEN} -f cmake-build-default/coverage.info
+      - name: Upload results to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: cmake-build-default/coverage.info
+          disable_search: true
+          token: ${{ secrets.CODECOV_TOKEN }}
