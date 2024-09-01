@@ -19,9 +19,6 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         run: |
-          cd src
-          mkdir build
-          cd build
           cmake --preset default
           ctest --build-and-test . .\cmake-build-default\ --build-generator "Ninja" --test-command ctest -V
           cmake --build --preset default --target coverage
