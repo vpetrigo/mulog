@@ -39,6 +39,7 @@ enum mulog_ret_code {
     MULOG_RET_CODE_NO_MEM = -1,
     MULOG_RET_CODE_NOT_FOUND = -2,
     MULOG_RET_CODE_INVALID_ARG = -3,
+    MULOG_RET_CODE_UNSUPPORTED = -4,
 };
 
 /**
@@ -49,7 +50,7 @@ enum mulog_ret_code {
  * Currently, the return value is not checked, because there might be multiple output functions registered. It is not
  * clear how to handle error condition in one output function while the second one may finish correctly.
  */
-typedef void (*mulog_log_output_fn)(const char *);
+typedef void (*mulog_log_output_fn)(const char *, size_t);
 
 /**
  * \brief Set log buffer to be used for formatting log lines
@@ -93,12 +94,23 @@ enum mulog_ret_code mulog_add_output_with_log_level(mulog_log_output_fn output,
  * \brief Remove the given output function from the logger
  * \param[in] output Output function
  */
-enum mulog_ret_code mulog_remove_output(mulog_log_output_fn output);
+enum mulog_ret_code mulog_unregister_output(mulog_log_output_fn output);
 
 /**
  * \brief Remove all registered outputs
  */
-void mulog_remove_all_outputs(void);
+void mulog_unregister_all_outputs(void);
+
+/**
+ * \brief Reset mulog module
+ */
+void mulog_reset(void);
+
+/**
+ * \brief Process deferred log
+ * \return Amount of characters printed
+ */
+int mulog_deferred_process(void);
 
 /**
  * \brief 
