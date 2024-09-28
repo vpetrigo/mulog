@@ -193,7 +193,9 @@ int interface_log_output(const enum mulog_log_level level, const char *fmt, va_l
         return 0;
     }
 
-    const int ret = vsnprintf_(NULL, 0, fmt, args);
+    va_list args_copy;
+    va_copy(args_copy, args);
+    const int ret = vsnprintf_(NULL, 0, fmt, args_copy);
 
     if (ret < 0) {
         return ret;
