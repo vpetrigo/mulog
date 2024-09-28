@@ -68,10 +68,12 @@ TEST(MulogDeferredNoBuf, ValidLogBuffer)
 
 TEST(MulogDeferredNoBuf, UnsupportedInterface)
 {
+    mulog_set_log_level(MULOG_LOG_LVL_DEBUG);
+
     for (size_t i = 0; i < MULOG_LOG_LVL_COUNT; ++i) {
         const auto ret =
             mulog_add_output_with_log_level(test_output, static_cast<mulog_log_level>(i));
-        CHECK_EQUAL(MULOG_RET_CODE_UNSUPPORTED, ret);
+        CHECK_EQUAL(i == MULOG_LOG_LVL_DEBUG ? MULOG_RET_CODE_OK : MULOG_RET_CODE_UNSUPPORTED, ret);
     }
 
     for (size_t i = 0; i < MULOG_LOG_LVL_COUNT; ++i) {
@@ -111,10 +113,12 @@ TEST_GROUP(MulogDeferredWithBuf)
 
 TEST(MulogDeferredWithBuf, UnsupportedInterface)
 {
+    mulog_set_log_level(MULOG_LOG_LVL_DEBUG);
+
     for (size_t i = 0; i < MULOG_LOG_LVL_COUNT; ++i) {
         const auto ret =
             mulog_add_output_with_log_level(test_output, static_cast<mulog_log_level>(i));
-        CHECK_EQUAL(MULOG_RET_CODE_UNSUPPORTED, ret);
+        CHECK_EQUAL(i == MULOG_LOG_LVL_DEBUG ? MULOG_RET_CODE_OK : MULOG_RET_CODE_UNSUPPORTED, ret);
     }
 
     for (size_t i = 0; i < MULOG_LOG_LVL_COUNT; ++i) {
