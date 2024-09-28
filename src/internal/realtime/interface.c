@@ -225,7 +225,7 @@ void interface_reset(void)
 {
 }
 
-int interface_log_output(const enum mulog_log_level level, const char *fmt, const va_list args)
+int interface_log_output(const enum mulog_log_level level, const char *fmt, va_list args)
 {
     if (list_head_empty(&handles.out_functions) || log_ctx.log_buffer == NULL ||
         log_ctx.log_buffer_size == 0 || level >= MULOG_LOG_LVL_COUNT) {

@@ -180,7 +180,7 @@ void interface_reset(void)
     lwrb_reset(&log_ctx.ring_buf);
 }
 
-int interface_log_output(const enum mulog_log_level level, const char *fmt, const va_list args)
+int interface_log_output(const enum mulog_log_level level, const char *fmt, va_list args)
 {
     if (list_head_empty(&handles.out_functions) || lwrb_is_ready(&log_ctx.ring_buf) == 0 ||
         level >= MULOG_LOG_LVL_COUNT || level < log_ctx.global_level) {
