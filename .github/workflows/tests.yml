@@ -11,7 +11,11 @@ on:
 jobs:
   build-coverage:
     runs-on: ubuntu-latest
-    container: gcc:13
+    container: gcc:${{ matrix.tag }}
+    strategy:
+      fail-fast: false
+      matrix:
+        tag: [ 13, 14 ]
     steps:
       - uses: actions/checkout@v4
         with:
