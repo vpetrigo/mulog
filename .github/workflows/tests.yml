@@ -17,7 +17,7 @@ jobs:
         with:
           submodules: true
       - name: Install dependencies
-        run: apt install cmake ninja-build -y
+        run: apt update && apt install cmake ninja-build -y
       - name: Install gcovr
         run: pip install gcovr
       - name: Run tests for deferred mode with coverage options
