@@ -17,9 +17,9 @@ jobs:
         with:
           submodules: true
       - name: Install dependencies
-        run: apt update && apt install cmake ninja-build python3-pip -y
+        run: apt update && apt install cmake ninja-build pipx -y
       - name: Install gcovr
-        run: pip install gcovr
+        run: pipx install gcovr
       - name: Run tests for deferred mode with coverage options
         run: |
           cmake --preset default-deferred
