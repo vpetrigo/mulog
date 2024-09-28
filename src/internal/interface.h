@@ -13,6 +13,7 @@ extern "C" {
 
 #include "mulog.h"
 
+#include <stdarg.h>
 #include <stddef.h>
 
 enum mulog_ret_code interface_add_output_default(mulog_log_output_fn output);
