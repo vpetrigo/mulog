@@ -1,2 +1,10 @@
 cpputest_register_test(list)
-cpputest_register_test(mulog mulog)
+set_target_properties(list_test PROPERTIES CXX_STANDARD 20)
+
+if (NOT MULOG_ENABLE_DEFERRED_LOGGING)
+    cpputest_register_test(mulog_realtime mulog)
+    set_target_properties(mulog_realtime_test PROPERTIES CXX_STANDARD 20)
+else ()
+    cpputest_register_test(mulog_deferred mulog)
+    set_target_properties(mulog_deferred_test PROPERTIES CXX_STANDARD 20)
+endif ()
