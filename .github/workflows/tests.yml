@@ -19,14 +19,19 @@ jobs:
         run: sudo apt install cmake ninja-build -y
       - name: Install gcovr
         run: sudo pip install gcovr
-      - name: Run tests with coverage options
+      - name: Run tests for deferred mode with coverage options
         run: |
-          cmake --preset default
-          ctest --build-and-test . cmake-build-default --build-generator "Ninja" --test-command ctest -V
-          cmake --build --preset default --target coverage
+          cmake --preset default-deferred
+          ctest --build-and-test . cmake-build-default-deferred --build-generator "Ninja" --test-command ctest -V
+          cmake --build --preset default-deferred --target coverage
+      - name: Run tests for realtime mode with coverage options
+        run: |
+          cmake --preset default-realtime
+          ctest --build-and-test . cmake-build-default-realtime --build-generator "Ninja" --test-command ctest -V
+          cmake --build --preset default-realtime --target coverage
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v4
         with:
-          file: cmake-build-default/coverage.info
+          files: cmake-build-default-deferred/coverage.info, cmake-build-default-realtime/coverage.info
           disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
