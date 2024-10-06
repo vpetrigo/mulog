@@ -17,7 +17,7 @@
 
 namespace {
     constexpr std::array log_levels{
-        MULOG_TRACE, MULOG_DEBUG, MULOG_INFO, MULOG_WARNING, MULOG_ERROR,
+        MULOG_TRACE_LVL, MULOG_DEBUG_LVL, MULOG_INFO_LVL, MULOG_WARNING_LVL, MULOG_ERROR_LVL,
     };
 
     void test_output(const char *buf, const size_t buf_size)
@@ -443,9 +443,9 @@ TEST(Mulog16ByteBuffer, SingleLog)
     CHECK_EQUAL_C_STRING(expected.c_str(), buffer.data());
 }
 
-TEST_GROUP(Mulog30ByteBuffer)
+TEST_GROUP(Mulog41ByteBuffer)
 {
-    std::array<char, 30> buffer{};
+    std::array<char, 41> buffer{};
 
     void setup() override
     {
@@ -459,7 +459,7 @@ TEST_GROUP(Mulog30ByteBuffer)
     }
 };
 
-TEST(Mulog30ByteBuffer, SingleLog)
+TEST(Mulog41ByteBuffer, SingleLog)
 {
     const std::string input{"Hello world"};
     auto ret = mulog_add_output(test_output);
