@@ -41,7 +41,7 @@ namespace {
             .withParameter("buf_size", buf_size);
     }
 
-    std::string generate_expected_output(std::string input, const mulog_log_level log_level,
+    std::string generate_expected_output(const std::string &input, const mulog_log_level log_level,
                                          const size_t max_size)
     {
         if constexpr (MULOG_ENABLE_TIMESTAMP) {
