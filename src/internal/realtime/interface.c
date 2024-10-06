@@ -93,6 +93,21 @@ static void output_log_entry(const enum mulog_log_level log_level, const char *b
     }
 }
 
+static inline int prepend_timestamp(char *buf, const size_t buf_size)
+{
+#if defined(MULOG_ENABLE_TIMESTAMP) && MULOG_ENABLE_TIMESTAMP == 1
+    const unsigned long timestamp_ms = mulog_config_mulog_timestamp_get();
+    const unsigned long ms = timestamp_ms % 1000;
+    const unsigned long sec = timestamp_ms / 1000;
+
+    return snprintf_(buf, buf_size, "%07lu.%03lu ", sec, ms);
+#else
+    UNUSED(buf);
+    UNUSED(buf_size);
+    return 0;
+#endif /* MULOG_ENABLE_TIMESTAMP */
+}
+
 static inline int prepend_level(char *buf, const size_t buf_size, const enum mulog_log_level level)
 {
     const char *level_str[] = {
@@ -238,18 +253,63 @@ int interface_log_output(const enum mulog_log_level level, const char *fmt, va_l
         return 0;
     }
 
-    int offset = prepend_level(log_ctx.log_buffer, log_ctx.log_buffer_size, level);
-    const int ret =
-        vsnprintf_(log_ctx.log_buffer + offset, log_ctx.log_buffer_size - offset, fmt, args);
+    size_t offset = 0;
+    int ret = 0;
+
+    ret = prepend_timestamp(log_ctx.log_buffer, log_ctx.log_buffer_size);
 
     if (ret < 0) {
         return ret;
     }
 
     offset += ret;
-    output_log_entry(level, log_ctx.log_buffer, (size_t)offset);
 
-    return ret;
+    if (log_ctx.log_buffer_size < offset) {
+        offset = (int)log_ctx.log_buffer_size - 1;
+        goto exit;
+    }
+
+    ret = prepend_level(log_ctx.log_buffer + offset, log_ctx.log_buffer_size - offset, level);
+
+    if (ret < 0) {
+        return ret;
+    }
+
+    offset += ret;
+
+    if (log_ctx.log_buffer_size < offset) {
+        offset = log_ctx.log_buffer_size - 1;
+        goto exit;
+    }
+
+    ret = vsnprintf_(log_ctx.log_buffer + offset, log_ctx.log_buffer_size - offset, fmt, args);
+
+    if (ret < 0) {
+        return ret;
+    }
+
+    offset += ret;
+
+    if (log_ctx.log_buffer_size < offset) {
+        offset = log_ctx.log_buffer_size - 1;
+        goto exit;
+    }
+
+    ret = line_termination(log_ctx.log_buffer + offset, log_ctx.log_buffer_size - offset);
+
+    if (ret < 0) {
+        return ret;
+    }
+
+    offset += ret;
+
+    if (log_ctx.log_buffer_size < offset) {
+        offset = log_ctx.log_buffer_size - 1;
+    }
+exit:
+    output_log_entry(level, log_ctx.log_buffer, offset);
+
+    return (int)offset;
 }
 
 int interface_deferred_log(void)
