@@ -10,7 +10,7 @@
 
 static char buffer[256];
 
-unsigned long config_mulog_timestamp_get(void)
+unsigned long mulog_config_mulog_timestamp_get(void)
 {
     struct timespec ts;
 
