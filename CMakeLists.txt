@@ -12,6 +12,7 @@ option(MULOG_ENABLE_TIMESTAMP_OUTPUT "Enable timestamp output for log entries" O
 set(MULOG_OUTPUT_HANDLERS 2 CACHE STRING "Maximum number of output handlers that can be registered")
 set(MULOG_CUSTOM_CONFIG "" CACHE STRING "Optional path to an external config file")
 option(MULOG_ENABLE_DEFERRED_LOGGING "Enable deferred logging support" OFF)
+option(MULOG_BUILD_EXAMPLES "Build examples" OFF)
 
 if (MULOG_ENABLE_TESTING)
     include(CTest)
@@ -29,6 +30,10 @@ if (MULOG_ENABLE_TESTING)
             -e ".*main.c"
             --html-theme github.dark-blue
             --html-details coverage.html -x coverage.info)
+endif ()
+
+if (MULOG_BUILD_EXAMPLES)
+    add_subdirectory(examples/)
 endif ()
 
 set(dependencies "")
