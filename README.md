@@ -9,6 +9,16 @@ This repository is an attempt to design a simple yet powerful logger that can be
 
 - [`printf`](https://github.com/eyalroz/printf.git): lightweight `printf`-family implementation suitable for embedded
   systems
+- [`lwrb`](https://github.com/MaJerle/lwrb): ring buffer implementation suitable for embedded
+  systems (_required only in deferred mode_)
+
+## Optimization
+
+By default, the project does not specify additional optimization flags for the library. To achieve smaller size of an
+executable, consider adding the following:
+- **GCC**: compile options `-ffunction-sections -fdata-sections` and linker option `-Wl,--gc-sections` to garbage
+  collect unused functions/data. This also prevents necessity to define `putchar_()` function implementation which is
+  a dependency from the `printf` library
 
 # Contribution
 
