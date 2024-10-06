@@ -3,9 +3,12 @@
  * \brief mulog library tests
  * \author Vladimir Petrigo
  */
+#include "internal/config.h"
+#include "internal/utils.h"
 #include "mulog.h"
 
 #include <array>
+#include <format>
 #include <iostream>
 
 #include <CppUTest/CommandLineTestRunner.h>
@@ -13,6 +16,10 @@
 #include <CppUTestExt/MockSupport.h>
 
 namespace {
+    constexpr std::array log_levels{
+        MULOG_TRACE, MULOG_DEBUG, MULOG_INFO, MULOG_WARNING, MULOG_ERROR,
+    };
+
     void test_output(const char *buf, const size_t buf_size)
     {
         mock().actualCall("test_output").withParameter("buf", buf);
@@ -32,6 +39,33 @@ namespace {
             .actualCall("multi_output_2")
             .withParameter("buf", buf)
             .withParameter("buf_size", buf_size);
+    }
+
+    std::string generate_expected_output(std::string input, const mulog_log_level log_level,
+                                         const size_t max_size)
+    {
+        if constexpr (MULOG_ENABLE_TIMESTAMP) {
+            const auto timestamp_ms = mulog_config_mulog_timestamp_get();
+            auto view =
+                std::format("{:07}.{:03} {}: {}{}", timestamp_ms / 1000, timestamp_ms % 1000,
+                            log_levels[log_level], input, MULOG_LOG_LINE_TERMINATION);
+
+            if (view.size() > max_size) {
+                view = view.substr(0, max_size);
+            }
+
+            return view;
+        } else {
+            auto view =
+                std::format("{}: {}{}", log_levels[log_level], input, MULOG_LOG_LINE_TERMINATION);
+
+            return view.size() < max_size ? view : view.substr(0, max_size);
+        }
+    }
+
+    extern "C" unsigned long mulog_config_mulog_timestamp_get(void)
+    {
+        return 42123UL;
     }
 
     extern "C" void putchar_(int c)
@@ -152,22 +186,24 @@ TEST(MulogTestsWithBuffer, TestSetLogLevelForUnregisteredOutput)
 TEST(MulogTestsWithBuffer, TestWithLogBuffer)
 {
     const auto ret = mulog_add_output(test_output);
+    const std::string input1{"123"};
+    const std::string input2{
+        "11111111111111111111111111111111111111111111111111111111111111111111111111111111"
+        "111111111111111111111111111111111111111111111111111"};
     CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
     mock().expectOneCall("test_output").withParameter("buf", buffer.data());
-    MULOG_LOG_DBG("123");
+    MULOG_LOG_DBG(input1.c_str());
     mock().checkExpectations();
-    CHECK_EQUAL_C_STRING("[DBG]: 123", get_log_buffer());
+    auto expected = generate_expected_output(input1, MULOG_LOG_LVL_DEBUG, buffer.size() - 1);
+    CHECK_EQUAL_C_STRING(expected.c_str(), get_log_buffer());
 
     mock().expectOneCall("test_output").withParameter("buf", buffer.data());
     MULOG_LOG_DBG("11111111111111111111111111111111111111111111111111111111111111111111111111111111"
                   "111111111111111111111111111111111111111111111111111");
     mock().checkExpectations();
-    CHECK_EQUAL_C_STRING("[DBG]: "
-                         "1111111111111111111111111111111111111111111111111111111111111111111111111"
-                         "11111111111111111111111111111111111111111111111",
-                         get_log_buffer());
-    const std::string_view str{get_log_buffer()};
-    CHECK_EQUAL(str.size(), buffer.size() - 1);
+    expected = generate_expected_output(input2, MULOG_LOG_LVL_DEBUG, buffer.size() - 1);
+    CHECK_EQUAL_C_STRING(expected.c_str(), get_log_buffer());
+    CHECK_EQUAL(expected.size(), buffer.size() - 1);
 }
 
 TEST(MulogTestsWithBuffer, TestOutputUnregistering)
@@ -193,6 +229,8 @@ TEST(MulogTestsWithBuffer, TestOutputUnregistering)
 TEST(MulogTestsWithBuffer, TestMultipleOutputs)
 {
     const std::string test_str{"123"};
+    const auto expected =
+        generate_expected_output(test_str, MULOG_LOG_LVL_DEBUG, buffer.size() - 1);
     auto ret = mulog_add_output(multi_output_1);
     CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
     ret = mulog_add_output(multi_output_2);
@@ -200,11 +238,11 @@ TEST(MulogTestsWithBuffer, TestMultipleOutputs)
     mock()
         .expectOneCall("multi_output_1")
         .withParameter("buf", get_log_buffer())
-        .withParameter("buf_size", test_str.size() + 7);
+        .withParameter("buf_size", expected.size());
     mock()
         .expectOneCall("multi_output_2")
         .withParameter("buf", get_log_buffer())
-        .withParameter("buf_size", test_str.size() + 7);
+        .withParameter("buf_size", expected.size());
     MULOG_LOG_DBG(test_str.c_str());
     mock().checkExpectations();
     ret = mulog_unregister_output(multi_output_1);
@@ -234,24 +272,26 @@ TEST(MulogTestsWithBuffer, TestGlobalOutputLogLevel)
     mock().checkExpectations();
     ret = mulog_set_log_level(MULOG_LOG_LVL_TRACE);
     CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
+    auto expected = generate_expected_output(test_str2, MULOG_LOG_LVL_DEBUG, buffer.size() - 1);
     mock()
         .expectOneCall("multi_output_1")
         .withParameter("buf", get_log_buffer())
-        .withParameter("buf_size", test_str2.size() + 7);
+        .withParameter("buf_size", expected.size());
     mock()
         .expectOneCall("multi_output_2")
         .withParameter("buf", get_log_buffer())
-        .withParameter("buf_size", test_str2.size() + 7);
+        .withParameter("buf_size", expected.size());
     MULOG_LOG_DBG(test_str2.c_str());
     mock().checkExpectations();
+    expected = generate_expected_output(test_str3, MULOG_LOG_LVL_TRACE, buffer.size() - 1);
     mock()
         .expectOneCall("multi_output_1")
         .withParameter("buf", get_log_buffer())
-        .withParameter("buf_size", test_str3.size() + 7);
+        .withParameter("buf_size", expected.size());
     mock()
         .expectOneCall("multi_output_2")
         .withParameter("buf", get_log_buffer())
-        .withParameter("buf_size", test_str3.size() + 7);
+        .withParameter("buf_size", expected.size());
     MULOG_LOG_TRACE(test_str3.c_str());
     mock().checkExpectations();
 }
@@ -266,36 +306,42 @@ TEST(MulogTestsWithBuffer, TestDifferentOutputLogLevel)
     CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
     ret = mulog_add_output_with_log_level(multi_output_2, MULOG_LOG_LVL_TRACE);
     CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
+    auto expected = generate_expected_output(test_str1, MULOG_LOG_LVL_TRACE, buffer.size() - 1);
     mock().expectNoCall("multi_output_1");
     mock()
         .expectOneCall("multi_output_2")
         .withParameter("buf", get_log_buffer())
-        .withParameter("buf_size", test_str1.size() + 7);
-    MULOG_LOG_TRACE("123");
+        .withParameter("buf_size", expected.size());
+    MULOG_LOG_TRACE(test_str1.c_str());
     mock().checkExpectations();
+    expected = generate_expected_output(test_str2, MULOG_LOG_LVL_TRACE, buffer.size() - 1);
     mock()
         .expectOneCall("multi_output_1")
         .withParameter("buf", get_log_buffer())
-        .withParameter("buf_size", test_str2.size() + 7);
+        .withParameter("buf_size", expected.size());
     mock()
         .expectOneCall("multi_output_2")
         .withParameter("buf", get_log_buffer())
-        .withParameter("buf_size", test_str2.size() + 7);
-    MULOG_LOG_ERR("345");
+        .withParameter("buf_size", expected.size());
+    MULOG_LOG_ERR(test_str2.c_str());
     mock().checkExpectations();
 }
 
 TEST(MulogTestsWithBuffer, TestPerOutputLogLevel)
 {
+    const std::string test_str1{"123"};
+    const std::string test_str2{"345"};
     const auto ret = mulog_add_output_with_log_level(test_output, MULOG_LOG_LVL_ERROR);
     CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
     mock().expectNoCall("test_output");
-    MULOG_LOG_DBG("123");
+    MULOG_LOG_DBG(test_str1.c_str());
     mock().checkExpectations();
     mock().expectOneCall("test_output").withParameter("buf", buffer.data());
-    MULOG_LOG_ERR("345");
+    MULOG_LOG_ERR(test_str2.c_str());
     mock().checkExpectations();
-    CHECK_EQUAL_C_STRING("[ERR]: 345", buffer.data());
+    const auto expected =
+        generate_expected_output(test_str2, MULOG_LOG_LVL_ERROR, buffer.size() - 1);
+    CHECK_EQUAL_C_STRING(expected.c_str(), buffer.data());
 }
 
 TEST(MulogTestsWithBuffer, TestTooManyOutputs)
@@ -320,13 +366,15 @@ TEST(MulogTestsWithBuffer, TestIncorrectLogLevel)
     CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
     mock().expectNoCall("test_output");
     auto chars_written = mulog_log(MULOG_LOG_LVL_COUNT, output.data());
+    const auto expected =
+        generate_expected_output(std::string{output}, MULOG_LOG_LVL_TRACE, buffer.size() - 1);
     CHECK(chars_written == 0);
     mock().checkExpectations();
 
     for (size_t i = 0; i < MULOG_LOG_LVL_COUNT; ++i) {
         mock().expectOneCall("test_output").withParameter("buf", get_log_buffer());
-        chars_written = mulog_log(MULOG_LOG_LVL_TRACE, output.data());
-        CHECK(chars_written == output.size());
+        chars_written = mulog_log(static_cast<mulog_log_level>(i), output.data());
+        CHECK_EQUAL(expected.size(), chars_written);
         mock().checkExpectations();
     }
 }
@@ -337,6 +385,90 @@ TEST(MulogTestsWithBuffer, TestDeferredLogUnsupported)
     CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
     auto ret_int = mulog_deferred_process();
     CHECK_EQUAL(MULOG_RET_CODE_UNSUPPORTED, ret_int);
+}
+
+TEST_GROUP(Mulog4ByteBuffer)
+{
+    std::array<char, 4> buffer{};
+
+    void setup() override
+    {
+        mulog_set_log_buffer(buffer.data(), buffer.size());
+    }
+
+    void teardown() override
+    {
+        mulog_unregister_all_outputs();
+        mock().clear();
+    }
+};
+
+TEST(Mulog4ByteBuffer, SingleLog)
+{
+    const std::string input{"Hello world"};
+    auto ret = mulog_add_output(test_output);
+    CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
+    const auto expected = generate_expected_output(input, MULOG_LOG_LVL_DEBUG, buffer.size() - 1);
+    mock().expectOneCall("test_output").withParameter("buf", buffer.data());
+    MULOG_LOG_DBG(input.c_str());
+    mock().checkExpectations();
+    CHECK_EQUAL_C_STRING(expected.c_str(), buffer.data());
+}
+
+TEST_GROUP(Mulog16ByteBuffer)
+{
+    std::array<char, 16> buffer{};
+
+    void setup() override
+    {
+        mulog_set_log_buffer(buffer.data(), buffer.size());
+    }
+
+    void teardown() override
+    {
+        mulog_unregister_all_outputs();
+        mock().clear();
+    }
+};
+
+TEST(Mulog16ByteBuffer, SingleLog)
+{
+    const std::string input{"Hello world"};
+    auto ret = mulog_add_output(test_output);
+    CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
+    const auto expected = generate_expected_output(input, MULOG_LOG_LVL_DEBUG, buffer.size() - 1);
+    mock().expectOneCall("test_output").withParameter("buf", buffer.data());
+    MULOG_LOG_DBG(input.c_str());
+    mock().checkExpectations();
+    CHECK_EQUAL_C_STRING(expected.c_str(), buffer.data());
+}
+
+TEST_GROUP(Mulog30ByteBuffer)
+{
+    std::array<char, 30> buffer{};
+
+    void setup() override
+    {
+        mulog_set_log_buffer(buffer.data(), buffer.size());
+    }
+
+    void teardown() override
+    {
+        mulog_unregister_all_outputs();
+        mock().clear();
+    }
+};
+
+TEST(Mulog30ByteBuffer, SingleLog)
+{
+    const std::string input{"Hello world"};
+    auto ret = mulog_add_output(test_output);
+    CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
+    const auto expected = generate_expected_output(input, MULOG_LOG_LVL_DEBUG, buffer.size() - 1);
+    mock().expectOneCall("test_output").withParameter("buf", buffer.data());
+    MULOG_LOG_DBG(input.c_str());
+    mock().checkExpectations();
+    CHECK_EQUAL_C_STRING(expected.c_str(), buffer.data());
 }
 
 int main(int argc, char *argv[])
