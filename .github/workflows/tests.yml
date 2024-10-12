@@ -22,9 +22,9 @@ jobs:
         with:
           submodules: true
       - name: Install dependencies
-        run: sudo apt update && sudo apt install cmake ninja-build -y
+        run: apt update && apt install cmake ninja-build python3-pip -y
       - name: Install gcovr
-        run: sudo pip install gcovr
+        run: pip install --break-system-packages gcovr
       - name: Run tests with coverage options
         run: |
           cmake --preset ${{ matrix.config }}
