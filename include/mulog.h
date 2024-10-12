@@ -113,43 +113,93 @@ void mulog_reset(void);
 int mulog_deferred_process(void);
 
 /**
- * \brief 
- * \param level
- * \param fmt 
- * \param ... 
- * \return 
+ * \brief Logs messages at the specified log level
+ *
+ * This function logs messages with a specified format string and additional
+ * arguments similar to printf. The log level determines the severity of the
+ * log message.
+ *
+ * \param level The log level specified by the enum mulog_log_level
+ * \param fmt The format string for the log message, similar to printf
+ * \param ... Additional arguments for the format string
+ * \return The result of the logging operation, where 0 indicates success
  */
 int mulog_log(enum mulog_log_level level, const char *fmt, ...) MULOG_PRINTF_ATTR;
 
 /**
- * \brief 
- * \param fmt 
+ * \brief Logs a message with trace level.
+ *
+ * This macro logs a trace level message using the specified format string.
+ *
+ * \param fmt The format string (printf-style).
+ * \param ... Additional arguments for the format string.
+ *
+ * Example usage:
+ * \code{.c}
+ * MULOG_LOG_TRACE("This is a trace message, value: %d", 42);
+ * \endcode
  */
-#define MULOG_LOG_TRACE(fmt, ...) mulog_log(MULOG_LOG_LVL_TRACE, fmt, ##__VA_ARGS__);
+#define MULOG_LOG_TRACE(fmt, ...) mulog_log(MULOG_LOG_LVL_TRACE, fmt, ##__VA_ARGS__)
 
 /**
- * \brief 
- * \param fmt 
+ * \brief Logs a message with debug level.
+ *
+ * This macro logs a debug level message using the specified format string.
+ *
+ * \param fmt The format string (printf-style).
+ * \param ... Additional arguments for the format string.
+ *
+ * Example usage:
+ * \code{.c}
+ * MULOG_LOG_DBG("This is a debug message, value: %d", 42);
+ * \endcode
  */
-#define MULOG_LOG_DBG(fmt, ...) mulog_log(MULOG_LOG_LVL_DEBUG, fmt, ##__VA_ARGS__);
+#define MULOG_LOG_DBG(fmt, ...) mulog_log(MULOG_LOG_LVL_DEBUG, fmt, ##__VA_ARGS__)
 
 /**
- * \brief 
- * \param fmt 
+ * \brief Logs a message with info level.
+ *
+ * This macro logs an info level message using the specified format string.
+ *
+ * \param fmt The format string (printf-style).
+ * \param ... Additional arguments for the format string.
+ *
+ * Example usage:
+ * \code{.c}
+ * MULOG_LOG_INFO("This is an info message, value: %d", 42);
+ * \endcode
  */
-#define MULOG_LOG_INFO(fmt, ...) mulog_log(MULOG_LOG_LVL_INFO, fmt, ##__VA_ARGS__);
+#define MULOG_LOG_INFO(fmt, ...) mulog_log(MULOG_LOG_LVL_INFO, fmt, ##__VA_ARGS__)
 
 /**
- * \brief 
- * \param fmt 
+ * \brief Logs a message with warning level.
+ *
+ * This macro logs a warning level message using the specified format string.
+ *
+ * \param fmt The format string (printf-style).
+ * \param ... Additional arguments for the format string.
+ *
+ * Example usage:
+ * \code{.c}
+ * MULOG_LOG_WARN("This is a warning message, value: %d", 42);
+ * \endcode
  */
-#define MULOG_LOG_WARN(fmt, ...) mulog_log(MULOG_LOG_LVL_WARNING, fmt, ##__VA_ARGS__);
+#define MULOG_LOG_WARN(fmt, ...) mulog_log(MULOG_LOG_LVL_WARNING, fmt, ##__VA_ARGS__)
 
 /**
- * \brief 
- * \param fmt 
+ * \brief Logs a message with error level.
+ *
+ * This macro logs an error level message using the specified format string.
+ *
+ * \param fmt The format string (printf-style).
+ * \param ... Additional arguments for the format string.
+ *
+ * Example usage:
+ * \code{.c}
+ * MULOG_LOG_ERR("This is an error message, value: %d", 42);
+ * \endcode
  */
-#define MULOG_LOG_ERR(fmt, ...) mulog_log(MULOG_LOG_LVL_ERROR, fmt, ##__VA_ARGS__);
+#define MULOG_LOG_ERR(fmt, ...) mulog_log(MULOG_LOG_LVL_ERROR, fmt, ##__VA_ARGS__)
 
 /**
  * @}

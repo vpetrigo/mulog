@@ -51,11 +51,28 @@ struct list_node {
 #define LIST_FOR_EACH_SAFE(ptr, n, head)                                                           \
     for ((ptr) = (head)->first; (ptr) != NULL && ((n) = (ptr)->next, 1); (ptr) = (n))
 
+/**
+ * \brief Checks if the list is empty.
+ *
+ * This function verifies whether the given list_head is empty, meaning it does
+ * not contain any elements.
+ *
+ * \param head Pointer to the list_head structure to be checked.
+ * \return Non-zero if the list is empty, otherwise zero.
+ */
 static inline int list_head_empty(const struct list_head *head)
 {
     return head->first == NULL;
 }
 
+/**
+ * \brief Adds a node to the beginning of the list.
+ *
+ * This function inserts the given node at the beginning of the list referenced by head.
+ *
+ * \param head Pointer to the list_head structure representing the list.
+ * \param node Pointer to the list_node structure to be added to the list.
+ */
 static inline void list_head_add(struct list_head *head, struct list_node *node)
 {
     struct list_node *h = head->first;
@@ -70,6 +87,14 @@ static inline void list_head_add(struct list_head *head, struct list_node *node)
     node->prev = &head->first;
 }
 
+/**
+ * \brief Deletes a node from the list.
+ *
+ * This function removes the specified list_node from its linked list,
+ * updating the previous and next nodes accordingly.
+ *
+ * \param node Pointer to the list_node structure to be deleted.
+ */
 static inline void list_head_del(struct list_node *node)
 {
     struct list_node *next = node->next;

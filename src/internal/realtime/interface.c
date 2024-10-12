@@ -49,6 +49,11 @@ static struct handles handles = {
 
 // PRIVATE FUNCTION DEFINITIONS
 
+/**
+ * \brief Sets the log level for all output functions.
+ *
+ * \param log_level The log level to set for all output functions.
+ */
 static void set_log_level_for_all_outputs(const enum mulog_log_level log_level)
 {
     struct list_node *it;
@@ -61,6 +66,15 @@ static void set_log_level_for_all_outputs(const enum mulog_log_level log_level)
     }
 }
 
+/**
+ * \brief Count the number of output functions with log level above a specified level.
+ *
+ * This function iterates through a list of output functions and counts how many
+ * have a log level greater than or equal to the specified log level.
+ *
+ * \param log_level The log level to compare against.
+ * \return The number of output functions with a log level above the specified level.
+ */
 static size_t get_num_outputs_above_level(const enum mulog_log_level log_level)
 {
     struct list_node *it;
@@ -78,6 +92,14 @@ static size_t get_num_outputs_above_level(const enum mulog_log_level log_level)
     return logger_count;
 }
 
+/**
+ * \brief Outputs a log entry to all the configured output functions that have a log level
+ *        lower than or equal to the specified log level.
+ *
+ * \param log_level The log level of the entry to be output.
+ * \param buf The buffer containing the log entry.
+ * \param buf_size The size of the buffer containing the log entry.
+ */
 static void output_log_entry(const enum mulog_log_level log_level, const char *buf,
                              const size_t buf_size)
 {
@@ -93,6 +115,17 @@ static void output_log_entry(const enum mulog_log_level log_level, const char *b
     }
 }
 
+/**
+ * \brief Prepends a timestamp to the provided buffer.
+ *
+ * This function inserts a formatted timestamp at the beginning of the provided buffer,
+ * if timestamping is enabled through the MULOG configuration. The timestamp format is
+ * `sssssss.mmm ` where sssssss represents the seconds and mmm represents the milliseconds
+ *
+ * \param buf The buffer to which the timestamp will be prepended.
+ * \param buf_size The size of the buffer.
+ * \return The number of characters written to the buffer, or 0 if timestamping is disabled.
+ */
 static inline int prepend_timestamp(char *buf, const size_t buf_size)
 {
 #if defined(MULOG_ENABLE_TIMESTAMP) && MULOG_ENABLE_TIMESTAMP == 1
@@ -108,6 +141,17 @@ static inline int prepend_timestamp(char *buf, const size_t buf_size)
 #endif /* MULOG_ENABLE_TIMESTAMP */
 }
 
+/**
+ * \brief Prepends the log level string to a buffer.
+ *
+ * This function takes a buffer and a log level, and prepends the corresponding log level string
+ * representation to the buffer.
+ *
+ * \param buf A pointer to the buffer where the log level string will be prepended.
+ * \param buf_size The size of the buffer.
+ * \param level The log level to prepend.
+ * \return The number of characters written to the buffer, or a negative value if an error occurs.
+ */
 static inline int prepend_level(char *buf, const size_t buf_size, const enum mulog_log_level level)
 {
     const char *level_str[] = {
@@ -119,6 +163,17 @@ static inline int prepend_level(char *buf, const size_t buf_size, const enum mul
     return snprintf_(buf, buf_size, "%s: ", level_str[level]);
 }
 
+/**
+ * \brief Appends a newline character to the given buffer.
+ *
+ * This function appends a newline character to the end of the buffer, ensuring
+ * the buffer size constraint is respected.
+ *
+ * \param buf Buffer to which the newline character will be appended.
+ * \param buf_size Size of the buffer.
+ * \return The number of characters written (including the newline character)
+ *         or a negative value if an error occurs.
+ */
 static inline int line_termination(char *buf, const size_t buf_size)
 {
     return snprintf_(buf, buf_size, "%s", "\n");

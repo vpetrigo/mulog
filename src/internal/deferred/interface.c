@@ -40,6 +40,15 @@ static struct handles handles = {
     .out_functions = LIST_HEAD_INIT_VAR,
 };
 
+/**
+ * \brief Outputs a log entry to all registered output functions.
+ *
+ * This function iterates through all registered output functions and writes the
+ * provided log entry buffer to each of them.
+ *
+ * \param buf Pointer to the buffer containing the log entry to be output.
+ * \param buf_size Size of the buffer in bytes.
+ */
 static void output_log_entry(const char *buf, const size_t buf_size)
 {
     struct list_node *it;
@@ -52,6 +61,17 @@ static void output_log_entry(const char *buf, const size_t buf_size)
     }
 }
 
+/**
+ * \brief Prepend a timestamp to the specified ring buffer.
+ *
+ * This function generates a timestamp string in the format "sssssss.mmm " where
+ * sssssss represents the seconds and mmm represents the milliseconds, and writes
+ * it to the specified ring buffer if timestamp logging is enabled.
+ *
+ * \param ring_buf Pointer to the ring buffer where the timestamp will be written.
+ * \return The number of bytes written to the ring buffer. Returns 0 if timestamp
+ * logging is disabled.
+ */
 static inline size_t prepend_timestamp_rb(lwrb_t *ring_buf)
 {
 #if defined(MULOG_ENABLE_TIMESTAMP) && MULOG_ENABLE_TIMESTAMP == 1
