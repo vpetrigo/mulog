@@ -52,6 +52,24 @@ static void output_log_entry(const char *buf, const size_t buf_size)
     }
 }
 
+static inline size_t prepend_timestamp_rb(lwrb_t *ring_buf)
+{
+#if defined(MULOG_ENABLE_TIMESTAMP) && MULOG_ENABLE_TIMESTAMP == 1
+    char timestamp_buffer[16];
+    const unsigned long timestamp_ms = mulog_config_mulog_timestamp_get();
+    const unsigned long ms = timestamp_ms % 1000;
+    const unsigned long sec = timestamp_ms / 1000;
+    const int ret =
+        snprintf_(timestamp_buffer, ARRAY_SIZE(timestamp_buffer), "%07lu.%03lu ", sec, ms);
+
+    return lwrb_write(ring_buf, timestamp_buffer, ret);
+#else
+    UNUSED(buf);
+    UNUSED(buf_size);
+    return 0;
+#endif /* MULOG_ENABLE_TIMESTAMP */
+}
+
 static inline size_t prepend_level_rb(enum mulog_log_level level, lwrb_t *ring_buf)
 {
     const char *level_str[] = {
@@ -187,12 +205,21 @@ int interface_log_output(const enum mulog_log_level level, const char *fmt, va_l
         return 0;
     }
 
-    size_t written = prepend_level_rb(level, &log_ctx.ring_buf);
+    size_t written = 0;
+    size_t processed = prepend_timestamp_rb(&log_ctx.ring_buf);
 
-    if (written == 0) {
+    if (processed == 0) {
         return 0;
     }
 
+    written += processed;
+    processed = prepend_level_rb(level, &log_ctx.ring_buf);
+
+    if (processed == 0) {
+        return 0;
+    }
+
+    written += processed;
     va_list args_copy;
     va_copy(args_copy, args);
     const int ret = vsnprintf_(NULL, 0, fmt, args_copy);
