@@ -32,15 +32,10 @@ effort is wasted. If there's already an open issue for it, knock yourself out.
 ---------
 
 <sup>
-This project is licensed under:
+This project is licensed under <a href="LICENSE.md">Apache License, Version 2.0</a>
 </sup>
 
 <br/>
-
-<sup>
-- <a href="LICENSE.md">Apache License, Version 2.0</a>
-</sup>
-
 <br/>
 
 <sup>
