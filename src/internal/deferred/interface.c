@@ -216,6 +216,7 @@ void interface_unregister_all_outputs(void)
 void interface_reset(void)
 {
     lwrb_reset(&log_ctx.ring_buf);
+    lwrb_free(&log_ctx.ring_buf);
 }
 
 int interface_log_output(const enum mulog_log_level level, const char *fmt, va_list args)
