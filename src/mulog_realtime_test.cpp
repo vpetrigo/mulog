@@ -7,13 +7,13 @@
 #include "internal/utils.h"
 #include "mulog.h"
 
-#include <array>
-#include <format>
-#include <iostream>
-
 #include <CppUTest/CommandLineTestRunner.h>
 #include <CppUTest/TestHarness_c.h>
 #include <CppUTestExt/MockSupport.h>
+
+#include <array>
+#include <format>
+#include <iostream>
 
 namespace {
     constexpr std::array log_levels{
@@ -61,6 +61,15 @@ namespace {
 
             return view.size() < max_size ? view : view.substr(0, max_size);
         }
+    }
+
+    extern "C" bool mulog_config_mulog_lock(void)
+    {
+        return true;
+    }
+
+    extern "C" void mulog_config_mulog_unlock(void)
+    {
     }
 
     extern "C" unsigned long mulog_config_mulog_timestamp_get(void)
