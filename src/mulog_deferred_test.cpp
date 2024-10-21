@@ -3,7 +3,6 @@
  * \brief mulog tests for the deferred logging mode
  * \author Vladimir Petrigo
  */
-
 #include "internal/config.h"
 #include "internal/utils.h"
 #include "mulog.h"
@@ -68,6 +67,15 @@ namespace {
 
             return view.size() < max_size ? view : view.substr(0, max_size);
         }
+    }
+
+    extern "C" bool mulog_config_mulog_lock(void)
+    {
+        return true;
+    }
+
+    extern "C" void mulog_config_mulog_unlock(void)
+    {
     }
 
     extern "C" unsigned long mulog_config_mulog_timestamp_get(void)
@@ -291,7 +299,7 @@ TEST(MulogDeferredWithBuf, LogEntryTrunсationWithMultipleEntries)
     log_ret = mulog_log(MULOG_LOG_LVL_ERROR, "%s", long_string3.c_str());
     CHECK_EQUAL(expected_free_size, log_ret);
     expected_free_size -= log_ret;
-
+    CHECK_EQUAL(0, expected_free_size);
     const auto expected_output2 = generate_expected_output(long_string2, MULOG_LOG_LVL_ERROR,
                                                            buffer.size() + 1 - expected_log_size1);
     const auto expected_output3 = generate_expected_output(long_string3, MULOG_LOG_LVL_ERROR,
@@ -370,6 +378,65 @@ TEST(MulogDeferredWithBuf, UnregisterOutput)
     CHECK_EQUAL(0, log_ret);
     ret = mulog_unregister_output(test_output);
     CHECK_EQUAL(MULOG_RET_CODE_NOT_FOUND, ret);
+}
+
+TEST(MulogDeferredWithBuf, NoOutputRegistered)
+{
+    mulog_reset();
+    auto ret = MULOG_LOG_ERR("%s", "Hello");
+    CHECK_EQUAL(0, ret);
+
+    mulog_add_output(test_output);
+    ret = MULOG_LOG_ERR("%s", "Hello");
+    CHECK_EQUAL(0, ret);
+}
+
+TEST_GROUP(SmallBuffer)
+{
+    std::array<char, 8> buffer{};
+
+    void setup() override
+    {
+        mulog_set_log_buffer(buffer.data(), buffer.size());
+    }
+
+    void teardown() override
+    {
+        mulog_reset();
+        mock().clear();
+    }
+};
+
+TEST(SmallBuffer, LogSingle)
+{
+    const std::string input{"Hello"};
+    mulog_add_output(test_output);
+    const auto ret = MULOG_LOG_ERR("%s", input.c_str());
+    CHECK_EQUAL(0, ret);
+}
+
+TEST_GROUP(SmallBuffer16)
+{
+    std::array<char, 16> buffer{};
+
+    void setup() override
+    {
+        mulog_set_log_buffer(buffer.data(), buffer.size());
+    }
+
+    void teardown() override
+    {
+        mulog_reset();
+        mock().clear();
+    }
+};
+
+TEST(SmallBuffer16, LogSingle)
+{
+    const std::string input{"Hello"};
+    mulog_add_output(test_output);
+    const auto ret = MULOG_LOG_ERR("%s", input.c_str());
+    CHECK_EQUAL(0, ret);
 }
 
 int main(const int argc, char *argv[])
