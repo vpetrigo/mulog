@@ -40,6 +40,7 @@ enum mulog_ret_code {
     MULOG_RET_CODE_NOT_FOUND = -2,
     MULOG_RET_CODE_INVALID_ARG = -3,
     MULOG_RET_CODE_UNSUPPORTED = -4,
+    MULOG_RET_CODE_LOCK_FAILED = -5,
 };
 
 /**
