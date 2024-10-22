@@ -82,6 +82,10 @@ static inline size_t prepend_timestamp_rb(lwrb_t *ring_buf)
     const int ret =
         snprintf_(timestamp_buffer, ARRAY_SIZE(timestamp_buffer), "%07lu.%03lu ", sec, ms);
 
+    if (ret < 0) {
+        return 0;
+    }
+
     return lwrb_write(ring_buf, timestamp_buffer, ret);
 #else
     UNUSED(buf);
