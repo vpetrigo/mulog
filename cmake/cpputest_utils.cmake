@@ -20,7 +20,7 @@ macro(cpputest_add_wrappers lib_name)
         set(list_var "${ARGN}")
 
         foreach (arg IN LISTS list_var)
-            target_link_options(${test_name} PRIVATE -Wl,--wrap=${arg})
+            target_link_options(${test_name} PRIVATE LINKER:--wrap=${arg})
         endforeach ()
     endif ()
 endmacro()
