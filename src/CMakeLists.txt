@@ -14,7 +14,7 @@ if (NOT MULOG_ENABLE_DEFERRED_LOGGING)
     target_compile_definitions(mulog_realtime_lock_test PRIVATE
             -DMULOG_INTERNAL_ENABLE_TIMESTAMP_OUTPUT=$<IF:$<BOOL:${MULOG_ENABLE_TIMESTAMP_OUTPUT}>,1,0>
             -DMULOG_INTERNAL_ENABLE_COLOR_OUTPUT=$<IF:$<BOOL:${MULOG_ENABLE_COLOR_OUTPUT}>,1,0>)
-    target_link_options(mulog_realtime_lock_test PRIVATE LINKER:--wrap,vsnprintf_ LINKER:--wrap,snprintf_)
+    cpputest_add_wrappers(mulog_realtime_lock vsnprintf_ snprintf_)
 else ()
     cpputest_register_test(mulog_deferred mulog)
     set_target_properties(mulog_deferred_test PROPERTIES CXX_STANDARD 20)
@@ -28,4 +28,6 @@ else ()
     target_compile_definitions(mulog_deferred_lock_test PRIVATE
             -DMULOG_INTERNAL_ENABLE_TIMESTAMP_OUTPUT=$<IF:$<BOOL:${MULOG_ENABLE_TIMESTAMP_OUTPUT}>,1,0>
             -DMULOG_INTERNAL_ENABLE_COLOR_OUTPUT=$<IF:$<BOOL:${MULOG_ENABLE_COLOR_OUTPUT}>,1,0>)
+    cpputest_add_wrappers(mulog_deferred_lock vsnprintf_ snprintf_ lwrb_get_full lwrb_get_linear_block_read_length)
+    target_link_libraries(mulog_deferred_lock_test PRIVATE lwrb)
 endif ()
