@@ -3,6 +3,7 @@
  * \brief
  * \author
  */
+#include "internal/utils.h"
 #include "mulog.h"
 
 #include <CppUTest/CommandLineTestRunner.h>
@@ -38,17 +39,68 @@ namespace {
     extern "C" void putchar_(int c)
     {
     }
+
+    extern "C" int __real_vsnprintf_(char *s, size_t count, const char *fmt, va_list ap);
+
+    extern "C" int __wrap_vsnprintf_(char *s, size_t count, const char *fmt, va_list ap)
+    {
+        UNUSED(s);
+        UNUSED(count);
+        UNUSED(fmt);
+        UNUSED(ap);
+        int value = mock().actualCall("vsnprintf").returnIntValue();
+
+        if (value < 0) {
+            return value;
+        }
+
+        value = __real_vsnprintf_(s, count, fmt, ap);
+
+        return value;
+    }
+
+    extern "C" int __wrap_snprintf_(char *s, size_t count, const char *fmt, ...)
+    {
+        UNUSED(fmt);
+        int value = mock().actualCall("snprintf").returnIntValue();
+
+        if (value < 0) {
+            return value;
+        }
+
+        va_list ap;
+
+        va_start(ap, fmt);
+        value = __real_vsnprintf_(s, count, fmt, ap);
+        va_end(ap);
+
+        return value;
+    }
+
+    extern "C" size_t __wrap_lwrb_get_full(const void *buff)
+    {
+        UNUSED(buff);
+
+        return mock().actualCall("lwrb_get_full").returnUnsignedLongIntValue();
+    }
+
+    extern "C" size_t __wrap_lwrb_get_linear_block_read_length(const void *buff)
+    {
+        UNUSED(buff);
+        return mock().actualCall("lwrb_get_linear_block_read_length").returnUnsignedLongIntValue();
+    }
 } // namespace
 
 TEST_GROUP(MulogDeferredLock)
 {
-    std::array<char, 1024> buffer;
+    std::array<char, 1024> buffer{};
 
     void setup() override
     {
-        mock().disable();
+        mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
+        mock().expectOneCall("mulog_config_mulog_unlock");
         mulog_set_log_buffer(buffer.data(), buffer.size());
-        mock().enable();
+        mock().clear();
     }
 
     void teardown() override
@@ -133,6 +185,57 @@ TEST(MulogDeferredLock, SimpleOperations)
     log_ret = mulog_deferred_process();
     mock().checkExpectations();
     CHECK_EQUAL(0, log_ret);
+}
+
+TEST(MulogDeferredLock, MockLog)
+{
+    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
+    mock().expectOneCall("mulog_config_mulog_unlock");
+    auto ret = mulog_set_log_level(MULOG_LOG_LVL_TRACE);
+    mock().checkExpectations();
+    CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
+    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
+    mock().expectOneCall("mulog_config_mulog_unlock");
+    ret = mulog_add_output(test_output);
+    mock().checkExpectations();
+    CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
+
+    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
+    mock().expectOneCall("mulog_config_mulog_unlock");
+    mock().expectNoCall("vsnprintf");
+    mock().expectOneCall("snprintf").andReturnValue(-1);
+    mock().expectNoCall("test_output");
+    auto log_ret = MULOG_LOG_DBG("Hello %s", "Temp");
+    mock().checkExpectations();
+    CHECK_EQUAL(0, log_ret);
+
+    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
+    mock().expectOneCall("mulog_config_mulog_unlock");
+    mock().expectOneCall("snprintf").andReturnValue(1);
+    mock().expectOneCall("vsnprintf").andReturnValue(-1);
+    mock().expectNoCall("test_output");
+    log_ret = MULOG_LOG_DBG("Hello %s", "Temp");
+    mock().checkExpectations();
+    CHECK_EQUAL(-1, log_ret);
+}
+
+TEST(MulogDeferredLock, MockLogDeferredProcess)
+{
+    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
+    mock().expectOneCall("mulog_config_mulog_unlock");
+    mock().expectOneCall("lwrb_get_full").andReturnValue(100UL);
+    mock().expectOneCall("lwrb_get_linear_block_read_length").andReturnValue(200UL);
+    auto ret = mulog_deferred_process();
+    mock().checkExpectations();
+    CHECK_EQUAL(100UL, ret);
+
+    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
+    mock().expectOneCall("mulog_config_mulog_unlock");
+    mock().expectOneCall("lwrb_get_full").andReturnValue(300UL);
+    mock().expectOneCall("lwrb_get_linear_block_read_length").andReturnValue(300UL);
+    ret = mulog_deferred_process();
+    mock().checkExpectations();
+    CHECK_EQUAL(300UL, ret);
 }
 
 int main(int argc, char **argv)

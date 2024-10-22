@@ -206,7 +206,7 @@ TEST(MulogRealtimeLock, MockLogWithLogMessageError)
     CHECK_EQUAL(-1, log_ret);
 }
 
-TEST(MulogRealtimeLock, MockLogWithPrependTimestampError)
+TEST(MulogRealtimeLock, MockLog)
 {
     mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
     mock().expectOneCall("mulog_config_mulog_unlock");
