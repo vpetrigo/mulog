@@ -180,8 +180,7 @@ TEST(MulogDeferredLock, SimpleOperations)
     mock().checkExpectations();
     CHECK_EQUAL(0, log_ret);
 
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(0);
-    mock().expectNoCall("mulog_config_mulog_unlock");
+    mock().expectOneCall("lwrb_get_full").andReturnValue(0UL);
     log_ret = mulog_deferred_process();
     mock().checkExpectations();
     CHECK_EQUAL(0, log_ret);
@@ -221,16 +220,12 @@ TEST(MulogDeferredLock, MockLog)
 
 TEST(MulogDeferredLock, MockLogDeferredProcess)
 {
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
-    mock().expectOneCall("mulog_config_mulog_unlock");
     mock().expectOneCall("lwrb_get_full").andReturnValue(100UL);
     mock().expectOneCall("lwrb_get_linear_block_read_length").andReturnValue(200UL);
     auto ret = mulog_deferred_process();
     mock().checkExpectations();
     CHECK_EQUAL(100UL, ret);
 
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
-    mock().expectOneCall("mulog_config_mulog_unlock");
     mock().expectOneCall("lwrb_get_full").andReturnValue(300UL);
     mock().expectOneCall("lwrb_get_linear_block_read_length").andReturnValue(300UL);
     ret = mulog_deferred_process();

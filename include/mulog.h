@@ -108,8 +108,18 @@ void mulog_unregister_all_outputs(void);
 void mulog_reset(void);
 
 /**
- * \brief Process deferred log
- * \return Amount of characters printed
+ * \brief Processes deferred log entries.
+ *
+ * This function handles the deferred logging mechanism by
+ * executing any pending log operations that were deferred.
+ *
+ * \warning This function must be called by a single log consumer, as it does not include
+ * any locking mechanisms.
+ * It interacts with the underlying circular buffer to read as much data as possible and sends that
+ * data to the registered outputs.
+ *
+ * \return Integer status code. Typically, returns the value from
+ *         the underlying deferred log interface routine.
  */
 int mulog_deferred_process(void);
 

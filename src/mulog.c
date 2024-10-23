@@ -110,14 +110,7 @@ void mulog_reset(void)
 
 int mulog_deferred_process(void)
 {
-    if (!mulog_config_mulog_lock()) {
-        return 0;
-    }
-
-    const int ret = interface_deferred_log();
-    mulog_config_mulog_unlock();
-
-    return ret;
+    return interface_deferred_log();
 }
 
 MULOG_PRINTF_ATTR int mulog_log(const enum mulog_log_level level, const char *fmt, ...)
