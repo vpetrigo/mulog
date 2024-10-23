@@ -177,11 +177,8 @@ TEST(MulogRealtimeLock, SimpleOperations)
     mock().checkExpectations();
     CHECK_EQUAL(0, log_ret);
 
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(0);
-    mock().expectNoCall("mulog_config_mulog_unlock");
     log_ret = mulog_deferred_process();
-    mock().checkExpectations();
-    CHECK_EQUAL(0, log_ret);
+    CHECK_EQUAL(MULOG_RET_CODE_UNSUPPORTED, log_ret);
 }
 
 TEST(MulogRealtimeLock, MockLogWithLogMessageError)
