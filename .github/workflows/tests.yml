@@ -9,6 +9,7 @@ on:
     types: [ opened, synchronize, reopened, edited ]
 
 jobs:
+
   build-coverage:
     runs-on: ubuntu-latest
     container: gcc:${{ matrix.tag }}
@@ -16,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         tag: [ 13, 14 ]
-        config: [default-deferred, default-realtime]
+        config: [ default-deferred, default-realtime ]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,3 +37,30 @@ jobs:
           files: cmake-build-default-deferred/coverage.info, cmake-build-default-realtime/coverage.info
           disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
+  build-examples-gcc:
+    runs-on: ubuntu-latest
+    container: gcc:${{ matrix.tag }}
+    strategy:
+      fail-fast: false
+      matrix:
+        tag: [ 13, 14 ]
+        config: [ default-deferred, default-realtime ]
+    steps: &examples-build-steps
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Install dependencies
+        run: apt update && apt install cmake ninja-build
+      - name: Build examples
+        run: |
+          cmake -DMULOG_BUILD_EXAMPLES=ON --preset ${{ matrix.config }}
+          cmake --build --preset ${{ matrix.config }}
+  build-examples-clang:
+    runs-on: ubuntu-latest
+    container: silkeh/clang:${{ matrix.tag }}
+    strategy:
+      fail-fast: false
+      matrix:
+        tag: [ 16, 17, 18, 19 ]
+        config: [ default-deferred, default-realtime ]
+    steps: *examples-build-steps
