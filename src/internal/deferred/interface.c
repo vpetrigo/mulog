@@ -252,8 +252,8 @@ int interface_log_output(const enum mulog_log_level level, const char *fmt, va_l
     if (ret < 0) {
         return ret;
     }
-    // TODO: Extract this to a configuration
-    const size_t max_single_log_size = 128;
+
+    const size_t max_single_log_size = MULOG_SINGLE_LOG_LINE_SIZE;
     const size_t available_size = lwrb_get_free(&log_ctx.ring_buf);
     size_t to_write = ret;
 

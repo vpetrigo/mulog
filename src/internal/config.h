@@ -18,7 +18,17 @@ extern "C" {
  */
 #define MULOG_ENABLE_TIMESTAMP (MULOG_INTERNAL_ENABLE_TIMESTAMP_OUTPUT)
 
-#define MULOG_ENABLE_LOCKING (0)
+/**
+ * \brief Flag to control whether locking mechanism for thead-safety during logging operations
+ * is used or not
+ */
+#define MULOG_ENABLE_LOCKING (MULOG_INTERNAL_ENABLE_LOCKING)
+
+/**
+ * \brief Define single log line size that will be extracted from a buffer
+ * for the deferred mode of operation
+ */
+#define MULOG_SINGLE_LOG_LINE_SIZE (MULOG_INTERNAL_SINGLE_LOG_LINE_SIZE)
 
 /**
  * \brief Flag that specify whether to enable color log lines

@@ -9,6 +9,8 @@ set(CMAKE_C_STANDARD 11)
 option(MULOG_ENABLE_TESTING "Enable tests for mulog library" OFF)
 option(MULOG_ENABLE_COLOR_OUTPUT "Enable color output" ON)
 option(MULOG_ENABLE_TIMESTAMP_OUTPUT "Enable timestamp output for log entries" ON)
+option(MULOG_ENABLE_LOCKING "Enable locking mechanism for multithreading/multitasking environment" ON)
+set(MULOG_SINGLE_LOG_LINE_SIZE 128 CACHE STRING "Single log line maximum size")
 set(MULOG_OUTPUT_HANDLERS 2 CACHE STRING "Maximum number of output handlers that can be registered")
 set(MULOG_CUSTOM_CONFIG "" CACHE STRING "Optional path to an external config file")
 option(MULOG_ENABLE_DEFERRED_LOGGING "Enable deferred logging support" OFF)
@@ -73,6 +75,8 @@ target_compile_definitions(mulog
         -DMULOG_INTERNAL_ENABLE_COLOR_OUTPUT=$<IF:$<BOOL:${MULOG_ENABLE_COLOR_OUTPUT}>,1,0>
         -DMULOG_INTERNAL_ENABLE_TIMESTAMP_OUTPUT=$<IF:$<BOOL:${MULOG_ENABLE_TIMESTAMP_OUTPUT}>,1,0>
         -DMULOG_INTERNAL_OUTPUT_HANDLERS=${MULOG_OUTPUT_HANDLERS}
+        -DMULOG_INTERNAL_SINGLE_LOG_LINE_SIZE=${MULOG_SINGLE_LOG_LINE_SIZE}
+        -DMULOG_INTERNAL_ENABLE_LOCKING=$<IF:$<BOOL:${MULOG_ENABLE_LOCKING}>,1,0>
         PUBLIC
         $<$<BOOL:${MULOG_ENABLE_DEFERRED_LOGGING}>:MULOG_ENABLE_DEFERRED_LOGGING=1>)
 
