@@ -7,13 +7,13 @@
 #include "internal/utils.h"
 #include "mulog.h"
 
-#include <CppUTest/CommandLineTestRunner.h>
-#include <CppUTest/TestHarness_c.h>
-#include <CppUTestExt/MockSupport.h>
-
 #include <array>
 #include <format>
 #include <iostream>
+
+#include <CppUTest/CommandLineTestRunner.h>
+#include <CppUTest/TestHarness_c.h>
+#include <CppUTestExt/MockSupport.h>
 
 namespace {
     constexpr std::array log_levels{
