@@ -5,6 +5,7 @@
  */
 #include "mulog.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -17,6 +18,15 @@ unsigned long mulog_config_mulog_timestamp_get(void)
     clock_gettime(CLOCK_REALTIME, &ts);
 
     return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+}
+
+bool mulog_config_mulog_lock(void)
+{
+    return true;
+}
+
+void mulog_config_mulog_unlock(void)
+{
 }
 
 static void output1_fn(const char *data, size_t data_size)
