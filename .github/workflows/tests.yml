@@ -53,7 +53,7 @@ jobs:
         run: apt update && apt install cmake ninja-build -y
       - name: Build examples
         run: |
-          cmake -DMULOG_BUILD_EXAMPLES=ON -DMULOG_ENABLE_TESTING=OFF --preset ${{ matrix.config }}
+          cmake -DMULOG_BUILD_EXAMPLES=ON --preset ${{ matrix.config }}
           cmake --build --preset ${{ matrix.config }}
   build-examples-clang:
     runs-on: ubuntu-latest
@@ -71,5 +71,7 @@ jobs:
           submodules: true
       - name: Build examples
         run: |
-          cmake -DMULOG_BUILD_EXAMPLES=ON -DMULOG_ENABLE_TESTING=OFF --preset ${{ matrix.config }}
+          export CFLAGS=""
+          export CXXFLAGS="-stdlib=libc++ -fexperimental-library"
+          cmake -DMULOG_BUILD_EXAMPLES=ON --preset ${{ matrix.config }}
           cmake --build --preset ${{ matrix.config }}
