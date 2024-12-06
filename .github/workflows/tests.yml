@@ -50,7 +50,7 @@ jobs:
         with:
           submodules: true
       - name: Install dependencies
-        run: apt update && apt install cmake ninja-build
+        run: apt update && apt install cmake ninja-build -y
       - name: Build examples
         run: |
           cmake -DMULOG_BUILD_EXAMPLES=ON --preset ${{ matrix.config }}
@@ -64,11 +64,11 @@ jobs:
         tag: [ 16, 17, 18, 19 ]
         config: [ default-deferred, default-realtime ]
     steps:
+      - name: Install dependencies
+        run: apt update && apt install cmake ninja-build git -y
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Install dependencies
-        run: apt update && apt install cmake ninja-build
       - name: Build examples
         run: |
           cmake -DMULOG_BUILD_EXAMPLES=ON --preset ${{ matrix.config }}
