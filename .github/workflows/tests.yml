@@ -45,7 +45,7 @@ jobs:
       matrix:
         tag: [ 13, 14 ]
         config: [ default-deferred, default-realtime ]
-    steps: &examples-build-steps
+    steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
@@ -63,4 +63,13 @@ jobs:
       matrix:
         tag: [ 16, 17, 18, 19 ]
         config: [ default-deferred, default-realtime ]
-    steps: *examples-build-steps
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Install dependencies
+        run: apt update && apt install cmake ninja-build
+      - name: Build examples
+        run: |
+          cmake -DMULOG_BUILD_EXAMPLES=ON --preset ${{ matrix.config }}
+          cmake --build --preset ${{ matrix.config }}
