@@ -11,9 +11,9 @@
 extern "C" {
 #endif
 
-#if !defined(MULOG_INTERNAL_CONFIG_PATH)
 #include <stdbool.h>
 
+#if !defined(MULOG_INTERNAL_CONFIG_PATH)
 /**
  * \brief Flag that specify whether to add timestamp to the log line
  */
@@ -46,10 +46,7 @@ extern "C" {
  */
 #define MULOG_LOG_LINE_TERMINATION "\n"
 #else
-#define STR(x)  #x
-#define XSTR(x) STR(x)
-
-#include XSTR(MULOG_INTERNAL_CONFIG_PATH)
+#include MULOG_INTERNAL_CONFIG_PATH
 #endif /* #if !defined(MULOG_INTERNAL_CONFIG_PATH) */
 
 /**
