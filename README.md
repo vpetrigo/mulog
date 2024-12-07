@@ -12,13 +12,48 @@ This repository is an attempt to design a simple yet powerful logger that can be
 - [`lwrb`](https://github.com/MaJerle/lwrb): ring buffer implementation suitable for embedded
   systems (_required only in deferred mode_)
 
+## Usage
+
+### CMake FetchContent
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(mulog_library
+    GIT_REPOSITORY https://github.com/vpetrigo/mulog.git
+    GIT_TAG v12.34.45 # Replace this with a real available version
+)
+FetchContent_MakeAvailable(mulog_library)
+
+target_link_libraries(<your_target> PRIVATE mulog::mulog)
+```
+
 ## Optimization
 
 By default, the project does not specify additional optimization flags for the library. To achieve smaller size of an
 executable, consider adding the following:
+
 - **GCC**: compile options `-ffunction-sections -fdata-sections` and linker option `-Wl,--gc-sections` to garbage
   collect unused functions/data. This also prevents necessity to define `putchar_()` function implementation which is
   a dependency from the `printf` library
+
+## Options
+
+The following options available for library configuration:
+
+| Option                        | Default value | Description                                                                            |
+|-------------------------------|---------------|----------------------------------------------------------------------------------------|
+| MULOG_ENABLE_TESTING          | `OFF`         | Enable tests for mulog library                                                         |
+| MULOG_ENABLE_COLOR_OUTPUT     | `ON`          | Enable color output                                                                    |
+| MULOG_ENABLE_TIMESTAMP_OUTPUT | `ON`          | Enable timestamp output for log entries                                                |
+| MULOG_ENABLE_LOCKING          | `ON`          | Enable locking mechanism for multithreading/multitasking environment                   |
+| MULOG_SINGLE_LOG_LINE_SIZE    | `128`         | **Deferred mode only**: Maximum size of a single log line passed to an output callback |
+| MULOG_OUTPUT_HANDLERS         | `2`           | Maximum number of output handlers that can be registered                               |
+| MULOG_CUSTOM_CONFIG           | `""`          | Optional path to an external config file                                               |
+| MULOG_ENABLE_DEFERRED_LOGGING | `OFF`         | Enable deferred logging support                                                        |
+| MULOG_BUILD_EXAMPLES          | `OFF`         | Build examples                                                                         |
+
+[`config.h`](src/internal/config.h) can be updated and used along with the `MULOG_CUSTOM_CONFIG` to provide a path
+to modified configuration to be used for library build.
 
 # Contribution
 
