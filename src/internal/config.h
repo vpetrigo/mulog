@@ -11,6 +11,7 @@
 extern "C" {
 #endif
 
+#if !defined(MULOG_INTERNAL_CONFIG_PATH)
 #include <stdbool.h>
 
 /**
@@ -44,6 +45,12 @@ extern "C" {
  * \brief Log line termination
  */
 #define MULOG_LOG_LINE_TERMINATION "\n"
+#else
+#define STR(x)  #x
+#define XSTR(x) STR(x)
+
+#include XSTR(MULOG_INTERNAL_CONFIG_PATH)
+#endif /* #if !defined(MULOG_INTERNAL_CONFIG_PATH) */
 
 /**
  * \brief External function that is used for getting time value
