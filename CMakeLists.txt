@@ -64,7 +64,7 @@ add_library(mulog
         src/internal/interface.h
         src/internal/utils.h
         $<IF:$<BOOL:${MULOG_ENABLE_DEFERRED_LOGGING}>,src/internal/deferred/interface.c,src/internal/realtime/interface.c>
-        $<$<BOOL:${MULOG_ENABLE_LOCKING}>:src/internal/stubs.c>
+        $<$<NOT:$<BOOL:${MULOG_ENABLE_LOCKING}>>:src/internal/stubs.c>
         include/mulog.h)
 target_include_directories(mulog
         PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include
