@@ -1,6 +1,6 @@
 [![codecov](https://codecov.io/gh/vpetrigo/mulog/graph/badge.svg?token=V29ApsX9FN)](https://codecov.io/gh/vpetrigo/mulog)
 [![tests](https://github.com/vpetrigo/mulog/actions/workflows/tests.yml/badge.svg)](https://github.com/vpetrigo/mulog/actions/workflows/tests.yml)
-![GitHub Release](https://img.shields.io/github/v/release/vpetrigo/mulog)
+[![GitHub Release](https://img.shields.io/github/v/release/vpetrigo/mulog)](https://github.com/vpetrigo/mulog/releases)
 
 # Mulog - simple logger for embedded systems
 
