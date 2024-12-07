@@ -18,9 +18,13 @@ This repository is an attempt to design a simple yet powerful logger that can be
 
 ```cmake
 include(FetchContent)
+# Optional - configure mulog library options
+set(MULOG_SINGLE_LOG_LINE_SIZE 256)
+set(MULOG_ENABLE_LOCKING OFF)
+# Fetch library content
 FetchContent_Declare(mulog_library
-    GIT_REPOSITORY https://github.com/vpetrigo/mulog.git
-    GIT_TAG v12.34.45 # Replace this with a real available version
+        GIT_REPOSITORY https://github.com/vpetrigo/mulog.git
+        GIT_TAG v12.34.45 # Replace this with a real available version
 )
 FetchContent_MakeAvailable(mulog_library)
 
@@ -54,6 +58,45 @@ The following options available for library configuration:
 
 [`config.h`](src/internal/config.h) can be updated and used along with the `MULOG_CUSTOM_CONFIG` to provide a path
 to modified configuration to be used for library build.
+
+# Usage example
+
+```c++
+#include <stdbool.h>
+#include <stdio.h>
+
+#include <mulog.h>
+
+static char buffer[256];
+
+unsigned long mulog_config_mulog_timestamp_get(void)
+{
+    return 0;
+}
+
+static void output(const char *buf, const size_t buf_size)
+{
+    printf("%.*s", (int)buf_size, buf);
+}
+
+// required here to facilitate libprintf dependency requirements
+void putchar_(char c)
+{
+    (void)c;
+}
+
+int main(void)
+{
+    mulog_set_log_buffer(buffer, sizeof(buffer));
+    mulog_set_log_level(MULOG_LOG_LVL_INFO);
+    mulog_add_output(output);
+
+    MULOG_LOG_INFO("Hello");
+    MULOG_LOG_DBG("World!");
+
+    return 0;
+}
+```
 
 # Contribution
 
