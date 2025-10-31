@@ -57,11 +57,11 @@ jobs:
           cmake --build --preset ${{ matrix.config }}
   build-examples-clang:
     runs-on: ubuntu-latest
-    container: silkeh/clang:${{ matrix.tag }}
+    container: teeks99/clang-ubuntu:${{ matrix.tag }}
     strategy:
       fail-fast: false
       matrix:
-        tag: [ 20 ]
+        tag: [ 19, 20 ]
         config: [ default-deferred, default-realtime ]
     steps:
       - name: Install dependencies
@@ -71,6 +71,5 @@ jobs:
           submodules: true
       - name: Build examples
         run: |
-          export CXXFLAGS="-stdlib=libc++ -fexperimental-library"
-          cmake -DMULOG_BUILD_EXAMPLES=ON -DCPPUTEST_MEM_LEAK_DETECTION_DISABLED=OFF --preset ${{ matrix.config }}
+          cmake -DMULOG_BUILD_EXAMPLES=ON --preset ${{ matrix.config }}
           cmake --build --preset ${{ matrix.config }}
