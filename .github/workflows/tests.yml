@@ -16,10 +16,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag: [ 13, 14 ]
+        tag: [ 13, 14, 15 ]
         config: [ default-deferred, default-realtime ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true
       - name: Install dependencies
@@ -43,10 +43,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag: [ 13, 14 ]
+        tag: [ 13, 14, 15 ]
         config: [ default-deferred, default-realtime ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true
       - name: Install dependencies
@@ -61,12 +61,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag: [ 16, 17, 18, 19 ]
+        tag: [ 20-bullseye ]
         config: [ default-deferred, default-realtime ]
     steps:
       - name: Install dependencies
         run: apt update && apt install cmake ninja-build git -y
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           submodules: true
       - name: Build examples
