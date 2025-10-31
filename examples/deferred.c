@@ -8,17 +8,16 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <sys/timeb.h>
+#include <sys/time.h>
 
 static char buffer[256];
 
 unsigned long mulog_config_mulog_timestamp_get(void)
 {
-    struct timeb tb;
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
 
-    ftime(&tb);
-
-    return tb.time * 1000 + tb.millitm;
+    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
 bool mulog_config_mulog_lock(void)
