@@ -60,6 +60,8 @@ FetchContent_Declare(printf_library
 list(APPEND dependencies printf_library)
 FetchContent_MakeAvailable(${dependencies})
 
+target_compile_options(printf PRIVATE -std=c11)
+
 string(LENGTH "${MULOG_CUSTOM_CONFIG}" custom_config_path_len)
 
 add_library(mulog
