@@ -8,7 +8,6 @@
 #include "internal/config.h"
 #include "internal/interface.h"
 
-#include <internal/utils.h>
 #include <stdarg.h>
 
 // PUBLIC FUNCTION DEFINITIONS
