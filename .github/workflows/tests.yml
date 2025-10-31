@@ -61,7 +61,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag: [ 20-bullseye ]
+        tag: [ 20 ]
         config: [ default-deferred, default-realtime ]
     steps:
       - name: Install dependencies
