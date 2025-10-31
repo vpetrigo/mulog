@@ -22,7 +22,8 @@ if (MULOG_ENABLE_TESTING)
     include(CTest)
     FetchContent_Declare(cpputest_library
             GIT_REPOSITORY https://github.com/cpputest/cpputest.git
-            GIT_TAG 114267515a4d90c9683fce988bd71d5d9b405ac4)
+            GIT_TAG 114267515a4d90c9683fce988bd71d5d9b405ac4
+            EXCLUDE_FROM_ALL)
     list(APPEND dependencies cpputest_library)
     enable_testing()
     add_compile_options(--coverage)
@@ -46,14 +47,16 @@ endif ()
 if (MULOG_ENABLE_DEFERRED_LOGGING)
     FetchContent_Declare(ring_buf_library
             GIT_REPOSITORY https://github.com/MaJerle/lwrb.git
-            GIT_TAG v3.2.0)
+            GIT_TAG v3.2.0
+            EXCLUDE_FROM_ALL)
     list(APPEND dependencies ring_buf_library)
 endif ()
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Overwrite printf BUILD_SHARED_LIBS variable")
 FetchContent_Declare(printf_library
         GIT_REPOSITORY https://github.com/eyalroz/printf.git
-        GIT_TAG v6.3.0)
+        GIT_TAG v6.3.0
+        EXCLUDE_FROM_ALL)
 list(APPEND dependencies printf_library)
 FetchContent_MakeAvailable(${dependencies})
 

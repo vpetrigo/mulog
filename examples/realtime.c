@@ -7,17 +7,18 @@
 
 #include <stdbool.h>
 #include <stdio.h>
-#include <time.h>
+
+#include <sys/timeb.h>
 
 static char buffer[256];
 
 unsigned long mulog_config_mulog_timestamp_get(void)
 {
-    struct timespec ts;
+    struct timeb tb;
 
-    clock_gettime(CLOCK_REALTIME, &ts);
+    ftime(&tb);
 
-    return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+    return tb.time * 1000 + tb.millitm;
 }
 
 bool mulog_config_mulog_lock(void)
@@ -29,14 +30,14 @@ void mulog_config_mulog_unlock(void)
 {
 }
 
-static void output1_fn(const char *data, size_t data_size)
+static void output1_fn(const char *data, const size_t data_size)
 {
-    printf("Output 1: %.*s", data_size, data);
+    printf("Output 1: %.*s", (int)data_size, data);
 }
 
-static void output2_fn(const char *data, size_t data_size)
+static void output2_fn(const char *data, const size_t data_size)
 {
-    printf("Output 2: %.*s", data_size, data);
+    printf("Output 2: %.*s", (int)data_size, data);
 }
 // required here to facilitate libprintf dependency requirements
 void putchar_(char c)
