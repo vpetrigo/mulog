@@ -16,15 +16,20 @@ set(MULOG_CUSTOM_CONFIG "" CACHE STRING "Optional path to an external config fil
 option(MULOG_ENABLE_DEFERRED_LOGGING "Enable deferred logging support" OFF)
 option(MULOG_BUILD_EXAMPLES "Build examples" OFF)
 
+set(dependencies "")
+
 if (MULOG_ENABLE_TESTING)
     include(CTest)
+    FetchContent_Declare(cpputest_library
+            GIT_REPOSITORY https://github.com/cpputest/cpputest.git
+            GIT_TAG 114267515a4d90c9683fce988bd71d5d9b405ac4)
+    list(APPEND dependencies cpputest_library)
     enable_testing()
     add_compile_options(--coverage)
     add_link_options(--coverage)
     # Disable CppUTest related tests
     set(TESTS OFF CACHE BOOL "Overwrite CppUTest TESTS variable")
     set(C++11 ON CACHE BOOL "Overwrite CppUTest C++11 variable")
-    add_subdirectory(external/cpputest/)
     add_subdirectory(src/)
 
     add_custom_target(coverage
@@ -38,8 +43,6 @@ if (MULOG_BUILD_EXAMPLES)
     add_subdirectory(examples/)
 endif ()
 
-set(dependencies "")
-
 if (MULOG_ENABLE_DEFERRED_LOGGING)
     FetchContent_Declare(ring_buf_library
             GIT_REPOSITORY https://github.com/MaJerle/lwrb.git
@@ -50,7 +53,7 @@ endif ()
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Overwrite printf BUILD_SHARED_LIBS variable")
 FetchContent_Declare(printf_library
         GIT_REPOSITORY https://github.com/eyalroz/printf.git
-        GIT_TAG v6.2.0)
+        GIT_TAG v6.3.0)
 list(APPEND dependencies printf_library)
 FetchContent_MakeAvailable(${dependencies})
 
