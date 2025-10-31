@@ -71,5 +71,6 @@ jobs:
           submodules: true
       - name: Build examples
         run: |
+          export CXXFLAGS="-stdlib=libc++ -fexperimental-library"
           cmake -DMULOG_BUILD_EXAMPLES=ON --preset ${{ matrix.config }}
           cmake --build --preset ${{ matrix.config }}
