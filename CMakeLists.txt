@@ -15,6 +15,7 @@ set(MULOG_OUTPUT_HANDLERS 2 CACHE STRING "Maximum number of output handlers that
 set(MULOG_CUSTOM_CONFIG "" CACHE STRING "Optional path to an external config file")
 option(MULOG_ENABLE_DEFERRED_LOGGING "Enable deferred logging support" OFF)
 option(MULOG_BUILD_EXAMPLES "Build examples" OFF)
+option(MULOG_INSTALL_LIBRARY "Install mulog library" OFF)
 
 set(dependencies "")
 
@@ -75,7 +76,9 @@ add_library(mulog
         $<$<NOT:$<BOOL:${MULOG_ENABLE_LOCKING}>>:src/internal/stubs.c>
         include/mulog.h)
 target_include_directories(mulog
-        PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include/>
         PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src)
 target_link_libraries(mulog PRIVATE
         printf::printf $<$<BOOL:${MULOG_ENABLE_DEFERRED_LOGGING}>:lwrb>)
@@ -98,3 +101,19 @@ target_compile_options(mulog PRIVATE
         $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>)
 
 add_library(mulog::mulog ALIAS mulog)
+
+if (MULOG_INSTALL_LIBRARY)
+    include(GNUInstallDirs)
+    configure_file(${PROJECT_SOURCE_DIR}/cmake/pkg-config.pc.in ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc @ONLY)
+    include(CMakePackageConfigHelpers)
+    configure_package_config_file(${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}-config.cmake.in
+            ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake
+            INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}
+            PATH_VARS CMAKE_INSTALL_LIBDIR)
+
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    install(TARGETS mulog EXPORT ${PROJECT_NAME}-targets INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    install(EXPORT ${PROJECT_NAME}-targets NAMESPACE ${PROJECT_NAME}:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME})
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc" DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME})
+endif ()
