@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.23)
 project(mulog)
 
 include(FetchContent)
-include(cmake/cpputest_utils.cmake)
 
 set(CMAKE_C_STANDARD 11)
 
@@ -21,6 +20,7 @@ set(dependencies "")
 
 if (MULOG_ENABLE_TESTING)
     include(CTest)
+    include(cmake/cpputest_utils.cmake)
     FetchContent_Declare(cpputest_library
             GIT_REPOSITORY https://github.com/cpputest/cpputest.git
             GIT_TAG 114267515a4d90c9683fce988bd71d5d9b405ac4
