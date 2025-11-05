@@ -2,7 +2,7 @@
 # - Test file expected to have a name `${lib_name}_test.cpp`
 # All arguments after the `lib_name` should be a name of supplementary libraries/interfaces
 # that should be linked/provided to the test executable to allow proper building
-macro(cpputest_register_test lib_name)
+macro(mulog_cpputest_register_test lib_name)
     if (BUILD_TESTING)
         set(test_name ${lib_name}_test)
         set(list_var "${ARGN}")
@@ -14,7 +14,7 @@ macro(cpputest_register_test lib_name)
 endmacro()
 
 # Add a wrapper/wrappers that should be registered during test application linking for the given `lib_name` library
-macro(cpputest_add_wrappers lib_name)
+macro(mulog_cpputest_add_wrappers lib_name)
     if (BUILD_TESTING)
         set(test_name ${lib_name}_test)
         set(list_var "${ARGN}")

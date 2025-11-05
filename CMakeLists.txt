@@ -20,7 +20,7 @@ set(dependencies "")
 
 if (MULOG_ENABLE_TESTING)
     include(CTest)
-    include(cmake/cpputest_utils.cmake)
+    include(cmake/mulog_cpputest_utils.cmake)
     FetchContent_Declare(cpputest_library
             GIT_REPOSITORY https://github.com/cpputest/cpputest.git
             GIT_TAG 114267515a4d90c9683fce988bd71d5d9b405ac4
