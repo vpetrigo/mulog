@@ -47,7 +47,7 @@ if (MULOG_ENABLE_TESTING)
             --exclude ".*_test\\.cpp"
             --exclude ".*main\\.c"
             --gcov-exclude ".*/(_deps|_build)/.*"
-            --gcov-ignore-errors no_working_dir_found,version_mismatch
+            --gcov-ignore-errors no_working_dir_found
             --html-theme github.dark-blue
             --html-details coverage.html -x coverage.info
             VERBATIM)
