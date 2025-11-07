@@ -12,12 +12,23 @@ jobs:
 
   build-coverage:
     runs-on: ubuntu-latest
-    container: gcc:${{ matrix.tag }}
+    container: ${{ matrix.compiler == 'gcc' && format('gcc:{0}', matrix.tag) || format('teeks99/clang-ubuntu:{0}', matrix.tag) }}
     strategy:
       fail-fast: false
       matrix:
-        tag: [ 13, 14, 15 ]
+        compiler: [ gcc, clang ]
         config: [ default-deferred, default-realtime ]
+        include:
+          - compiler: gcc
+            tag: 13
+          - compiler: gcc
+            tag: 14
+          - compiler: gcc
+            tag: 15
+          - compiler: clang
+            tag: 19
+          - compiler: clang
+            tag: 20
     steps:
       - uses: actions/checkout@v5
         with:
@@ -26,6 +37,11 @@ jobs:
         run: apt update && apt install cmake ninja-build python3-pip -y
       - name: Install gcovr
         run: pip install --break-system-packages gcovr
+      - name: Set compiler environment (Clang)
+        if: matrix.compiler == 'clang'
+        run: |
+          echo "CC=clang" >> $GITHUB_ENV
+          echo "CXX=clang++" >> $GITHUB_ENV
       - name: Run tests with coverage options
         run: |
           cmake --preset ${{ matrix.config }}

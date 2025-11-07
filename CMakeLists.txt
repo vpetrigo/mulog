@@ -39,7 +39,8 @@ if (MULOG_ENABLE_TESTING)
             COMMAND gcovr -r ${CMAKE_CURRENT_LIST_DIR}/src .
             --exclude ".*_test\\.cpp"
             --exclude ".*main\\.c"
-            --exclude ".*/(_deps|_build)/.*"
+            --gcov-exclude ".*/(_deps|_build)/.*"
+            --gcov-ignore-errors no_working_dir_found
             --html-theme github.dark-blue
             --html-details coverage.html -x coverage.info
             VERBATIM)
