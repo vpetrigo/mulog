@@ -16,16 +16,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler: [gcc, clang]
+        compiler: [gcc]
+        tag: [13, 14, 15]
         config: [ default-deferred, default-realtime ]
 
         include:
-          - compiler: gcc
-            tag: 13
-          - compiler: gcc
-            tag: 14
-          - compiler: gcc
-            tag: 15
           - compiler: clang
             tag: 19
           - compiler: clang
