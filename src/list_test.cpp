@@ -34,8 +34,8 @@ TEST_CASE("ListTests - AddTwoItem", "[list]")
 {
     LIST_HEAD(head);
 
-    list_node node1;
-    list_node node2;
+    list_node node1{};
+    list_node node2{};
 
     LIST_NODE_INIT(&node1);
     LIST_NODE_INIT(&node2);
@@ -63,8 +63,8 @@ TEST_CASE("ListTests - AddTwoItemsAndRemoveOne", "[list]")
 {
     LIST_HEAD(head);
 
-    list_node node1;
-    list_node node2;
+    list_node node1{};
+    list_node node2{};
 
     LIST_NODE_INIT(&node1);
     LIST_NODE_INIT(&node2);
@@ -108,7 +108,7 @@ TEST_CASE("ListTests - AddMultipleItemsAndRemoveAll", "[list]")
     LIST_HEAD(head);
     std::array<list_node, 10> nodes{};
 
-    std::for_each(std::begin(nodes), std::end(nodes), [&head](list_node &node) {
+    std::ranges::for_each(nodes, [&head](list_node &node) {
         LIST_NODE_INIT(&node);
         list_head_add(&head, &node);
     });
@@ -127,7 +127,7 @@ TEST_CASE("ListTests - AddMultipleItemsAndRemoveAll", "[list]")
     }
 
     REQUIRE(id == 0);
-    std::for_each(std::begin(nodes), std::end(nodes), [](list_node &node) {
+    std::ranges::for_each(nodes, [](list_node &node) {
         list_head_del(&node);
     });
     REQUIRE(list_head_empty(&head));
