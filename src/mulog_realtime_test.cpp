@@ -122,7 +122,7 @@ public:
 
     MulogTestsWithBuffer()
     {
-        mulog_set_log_level(MULOG_LOG_LVL_DEBUG);
+        buffer.fill('\0');
         mulog_set_log_buffer(buffer.data(), buffer.size());
     }
 
@@ -355,12 +355,13 @@ public:
 
     Mulog4ByteBuffer()
     {
+        buffer.fill('\0');
         mulog_set_log_buffer(buffer.data(), buffer.size());
     }
 
     ~Mulog4ByteBuffer()
     {
-        mulog_unregister_all_outputs();
+        mulog_reset();
     }
 };
 
@@ -381,12 +382,13 @@ public:
 
     Mulog16ByteBuffer()
     {
+        buffer.fill('\0');
         mulog_set_log_buffer(buffer.data(), buffer.size());
     }
 
     ~Mulog16ByteBuffer()
     {
-        mulog_unregister_all_outputs();
+        mulog_reset();
     }
 };
 
@@ -407,12 +409,13 @@ public:
 
     Mulog41ByteBuffer()
     {
+        buffer.fill('\0');
         mulog_set_log_buffer(buffer.data(), buffer.size());
     }
 
     ~Mulog41ByteBuffer()
     {
-        mulog_unregister_all_outputs();
+        mulog_reset();
     }
 };
 
