@@ -20,7 +20,7 @@ set(dependencies "")
 
 if (MULOG_ENABLE_TESTING)
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        set(GCOV_EXECUTABLE "llvm-cov gcov")
+        set(GCOV_EXECUTABLE "llvm-cov")
     else ()
         set(GCOV_EXECUTABLE "gcov")
     endif ()
