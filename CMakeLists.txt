@@ -33,12 +33,13 @@ if (MULOG_ENABLE_TESTING)
     enable_testing()
     add_compile_options(--coverage)
     add_link_options(--coverage)
-    # Disable CppUTest related tests
     add_subdirectory(src/)
 
     add_custom_target(coverage
-            COMMAND gcovr -r ${CMAKE_CURRENT_LIST_DIR}/src . -e ".*_test.cpp"
+            COMMAND gcovr -r ${CMAKE_CURRENT_LIST_DIR}/src .
+            -e ".*_test.cpp"
             -e ".*main.c"
+            -e ".*/_deps/.*"
             --html-theme github.dark-blue
             --html-details coverage.html -x coverage.info)
 endif ()
