@@ -19,6 +19,12 @@ option(MULOG_INSTALL_LIBRARY "Install mulog library" OFF)
 set(dependencies "")
 
 if (MULOG_ENABLE_TESTING)
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        set(GCOV_EXECUTABLE "llvm-cov gcov")
+    else ()
+        set(GCOV_EXECUTABLE "gcov")
+    endif ()
+
     include(CTest)
     include(cmake/mulog_test_utils.cmake)
     FetchContent_Declare(test_library
@@ -37,10 +43,11 @@ if (MULOG_ENABLE_TESTING)
 
     add_custom_target(coverage
             COMMAND gcovr -r ${CMAKE_CURRENT_LIST_DIR}/src .
+            --gcov-executable "${GCOV_EXECUTABLE}"
             --exclude ".*_test\\.cpp"
             --exclude ".*main\\.c"
             --gcov-exclude ".*/(_deps|_build)/.*"
-            --gcov-ignore-errors no_working_dir_found
+            --gcov-ignore-errors no_working_dir_found,version_mismatch
             --html-theme github.dark-blue
             --html-details coverage.html -x coverage.info
             VERBATIM)
