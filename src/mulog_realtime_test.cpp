@@ -122,7 +122,6 @@ public:
 
     MulogTestsWithBuffer()
     {
-        buffer.fill('\0');
         mulog_set_log_buffer(buffer.data(), buffer.size());
     }
 
@@ -290,6 +289,7 @@ TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestDifferentOutp
     REQUIRE_CALL(output_mock, multi_output_1(get_log_buffer(), expected.size()));
     REQUIRE_CALL(output_mock, multi_output_2(get_log_buffer(), expected.size()));
     MULOG_LOG_ERR("%s", test_str2.c_str());
+    mulog_set_log_level(MULOG_LOG_LVL_DEBUG);
 }
 
 TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestPerOutputLogLevel", "[mulog]")
@@ -355,7 +355,6 @@ public:
 
     Mulog4ByteBuffer()
     {
-        buffer.fill('\0');
         mulog_set_log_buffer(buffer.data(), buffer.size());
     }
 
@@ -382,7 +381,6 @@ public:
 
     Mulog16ByteBuffer()
     {
-        buffer.fill('\0');
         mulog_set_log_buffer(buffer.data(), buffer.size());
     }
 
@@ -409,7 +407,6 @@ public:
 
     Mulog41ByteBuffer()
     {
-        buffer.fill('\0');
         mulog_set_log_buffer(buffer.data(), buffer.size());
     }
 
