@@ -16,37 +16,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        config: [ default-deferred, default-realtime ]
+
         include:
           - compiler: gcc
             tag: 13
-            config: default-deferred
-          - compiler: gcc
-            tag: 13
-            config: default-realtime
           - compiler: gcc
             tag: 14
-            config: default-deferred
-          - compiler: gcc
-            tag: 14
-            config: default-realtime
           - compiler: gcc
             tag: 15
-            config: default-deferred
-          - compiler: gcc
-            tag: 15
-            config: default-realtime
           - compiler: clang
             tag: 19
-            config: default-deferred
-          - compiler: clang
-            tag: 19
-            config: default-realtime
           - compiler: clang
             tag: 20
-            config: default-deferred
-          - compiler: clang
-            tag: 20
-            config: default-realtime
     steps:
       - name: Install dependencies
         run: apt update && apt install cmake ninja-build python3-pip git -y
