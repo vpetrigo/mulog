@@ -37,9 +37,9 @@ if (MULOG_ENABLE_TESTING)
 
     add_custom_target(coverage
             COMMAND gcovr -r ${CMAKE_CURRENT_LIST_DIR}/src .
-            -e ".*_test.cpp"
-            -e ".*main.c"
-            -e ".*/_deps/.*"
+            --exclude ".*_test\\.cpp"
+            --exclude ".*main\\.c"
+            --exclude ".*/_deps/.*"
             --html-theme github.dark-blue
             --html-details coverage.html -x coverage.info)
 endif ()
