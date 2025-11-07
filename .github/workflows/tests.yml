@@ -16,6 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        tag: [ 13, 14, 15, 19, 20 ]
         compiler: [ gcc, clang ]
         config: [ default-deferred, default-realtime ]
         include:
@@ -34,7 +35,7 @@ jobs:
         with:
           submodules: true
       - name: Install dependencies
-        run: apt update && apt install cmake ninja-build python3-pip -y
+        run: apt update && apt install cmake ninja-build python3-pip git -y
       - name: Install gcovr
         run: pip install --break-system-packages gcovr
       - name: Set compiler environment (Clang)
