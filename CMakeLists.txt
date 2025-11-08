@@ -42,14 +42,15 @@ if (MULOG_ENABLE_TESTING)
     add_subdirectory(src/)
 
     add_custom_target(coverage
-            COMMAND gcovr -r ${CMAKE_CURRENT_LIST_DIR}/src .
+            COMMAND gcovr -r ${CMAKE_CURRENT_LIST_DIR}
             --gcov-executable "${GCOV_EXECUTABLE}"
             --exclude ".*_test\\.cpp"
             --exclude ".*main\\.c"
-            --gcov-exclude ".*/(_deps|_build)/.*"
+            --filter "${CMAKE_CURRENT_LIST_DIR}/src/.*\\.(c|h)"
             --gcov-ignore-errors no_working_dir_found
             --html-theme github.dark-blue
             --html-details coverage.html -x coverage.info
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             VERBATIM)
 endif ()
 
