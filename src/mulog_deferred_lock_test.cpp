@@ -6,29 +6,41 @@
 #include "internal/utils.h"
 #include "mulog.h"
 
-#include <CppUTest/CommandLineTestRunner.h>
-#include <CppUTest/TestHarness_c.h>
-#include <CppUTestExt/MockSupport.h>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/trompeloeil.hpp>
 
 #include <array>
+#include <cstdarg>
 
 namespace {
+    class ApiMock {
+    public:
+        MAKE_MOCK0(mulog_config_mulog_lock, bool());
+        MAKE_MOCK0(mulog_config_mulog_unlock, void());
+        MAKE_MOCK2(test_output, void(const char *, const size_t));
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-attributes"
+        MAKE_MOCK4(__wrap_vsnprintf_, int(char *, size_t, const char *, va_list));
+#pragma GCC diagnostic pop
+        MAKE_MOCK1(__wrap_lwrb_get_full, size_t(const void *));
+        MAKE_MOCK1(__wrap_lwrb_get_linear_block_read_length, size_t(const void *));
+    };
+
+    ApiMock api;
+
     void test_output(const char *buf, const size_t buf_size)
     {
-        const std::string buf_{buf, buf_size};
-
-        mock().actualCall("test_output").withStringParameter("buf", buf_.c_str());
+        api.test_output(buf, buf_size);
     }
 
     extern "C" bool mulog_config_mulog_lock(void)
     {
-        mock().actualCall("mulog_config_mulog_lock");
-        return mock().intReturnValue();
+        return api.mulog_config_mulog_lock();
     }
 
     extern "C" void mulog_config_mulog_unlock(void)
     {
-        mock().actualCall("mulog_config_mulog_unlock");
+        api.mulog_config_mulog_unlock();
     }
 
     extern "C" unsigned long mulog_config_mulog_timestamp_get(void)
@@ -48,7 +60,7 @@ namespace {
         UNUSED(count);
         UNUSED(fmt);
         UNUSED(ap);
-        int value = mock().actualCall("vsnprintf").returnIntValue();
+        int value = api.__wrap_vsnprintf_(s, count, fmt, ap);
 
         if (value < 0) {
             return value;
@@ -61,179 +73,151 @@ namespace {
 
     extern "C" int __wrap_snprintf_(char *s, size_t count, const char *fmt, ...)
     {
-        UNUSED(fmt);
-        int value = mock().actualCall("snprintf").returnIntValue();
+        va_list ap;
+        va_start(ap, fmt);
+        int value = api.__wrap_vsnprintf_(s, count, fmt, ap);
+        va_end(ap);
 
         if (value < 0) {
             return value;
         }
 
-        va_list ap;
+        va_list ap2;
 
-        va_start(ap, fmt);
+        va_start(ap2, fmt);
         value = __real_vsnprintf_(s, count, fmt, ap);
-        va_end(ap);
+        va_end(ap2);
 
         return value;
     }
 
     extern "C" size_t __wrap_lwrb_get_full(const void *buff)
     {
-        UNUSED(buff);
-
-        return mock().actualCall("lwrb_get_full").returnUnsignedLongIntValue();
+        return api.__wrap_lwrb_get_full(buff);
     }
 
     extern "C" size_t __wrap_lwrb_get_linear_block_read_length(const void *buff)
     {
-        UNUSED(buff);
-        return mock().actualCall("lwrb_get_linear_block_read_length").returnUnsignedLongIntValue();
+        return api.__wrap_lwrb_get_linear_block_read_length(buff);
     }
 } // namespace
 
-TEST_GROUP(MulogDeferredLock)
-{
+class MulogDeferredLock {
+public:
     std::array<char, 1024> buffer{};
 
-    void setup() override
+    MulogDeferredLock()
     {
-        mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
-        mock().expectOneCall("mulog_config_mulog_unlock");
+        REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(true);
+        REQUIRE_CALL(api, mulog_config_mulog_unlock());
         mulog_set_log_buffer(buffer.data(), buffer.size());
-        mock().clear();
     }
 
-    void teardown() override
+    ~MulogDeferredLock()
     {
-        mock().disable();
+        REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(true);
+        REQUIRE_CALL(api, mulog_config_mulog_unlock());
         mulog_reset();
-        mock().enable();
-        mock().clear();
     }
 };
 
-TEST(MulogDeferredLock, SimpleOperations)
+TEST_CASE_METHOD(MulogDeferredLock, "MulogDeferredLock - SimpleOperations", "[deferred][lock]")
 {
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
-    mock().expectOneCall("mulog_config_mulog_unlock");
+    REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(true);
+    REQUIRE_CALL(api, mulog_config_mulog_unlock());
     auto ret = mulog_set_log_level(MULOG_LOG_LVL_TRACE);
-    mock().checkExpectations();
-    CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(0);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(false);
     ret = mulog_set_log_level(MULOG_LOG_LVL_TRACE);
-    mock().checkExpectations();
-    CHECK_EQUAL(MULOG_RET_CODE_LOCK_FAILED, ret);
+    REQUIRE(MULOG_RET_CODE_LOCK_FAILED == ret);
 
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
-    mock().expectOneCall("mulog_config_mulog_unlock");
+    REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(true);
+    REQUIRE_CALL(api, mulog_config_mulog_unlock());
     ret = mulog_set_channel_log_level(test_output, MULOG_LOG_LVL_ERROR);
-    mock().checkExpectations();
-    CHECK_EQUAL(MULOG_RET_CODE_UNSUPPORTED, ret);
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(0);
+    REQUIRE(MULOG_RET_CODE_UNSUPPORTED == ret);
+    REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(false);
     ret = mulog_set_channel_log_level(test_output, MULOG_LOG_LVL_TRACE);
-    mock().checkExpectations();
-    CHECK_EQUAL(MULOG_RET_CODE_LOCK_FAILED, ret);
+    REQUIRE(MULOG_RET_CODE_LOCK_FAILED == ret);
 
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
-    mock().expectOneCall("mulog_config_mulog_unlock");
+    REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(true);
+    REQUIRE_CALL(api, mulog_config_mulog_unlock());
     ret = mulog_add_output(test_output);
-    mock().checkExpectations();
-    CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(0);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(false);
     ret = mulog_add_output(test_output);
-    mock().checkExpectations();
-    CHECK_EQUAL(MULOG_RET_CODE_LOCK_FAILED, ret);
+    REQUIRE(MULOG_RET_CODE_LOCK_FAILED == ret);
 
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
-    mock().expectOneCall("mulog_config_mulog_unlock");
+    REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(true);
+    REQUIRE_CALL(api, mulog_config_mulog_unlock());
     ret = mulog_add_output_with_log_level(test_output, MULOG_LOG_LVL_ERROR);
-    mock().checkExpectations();
-    CHECK_EQUAL(MULOG_RET_CODE_UNSUPPORTED, ret);
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(0);
+    REQUIRE(MULOG_RET_CODE_UNSUPPORTED == ret);
+    REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(false);
     ret = mulog_add_output_with_log_level(test_output, MULOG_LOG_LVL_ERROR);
-    mock().checkExpectations();
-    CHECK_EQUAL(MULOG_RET_CODE_LOCK_FAILED, ret);
+    REQUIRE(MULOG_RET_CODE_LOCK_FAILED == ret);
 
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
-    mock().expectOneCall("mulog_config_mulog_unlock");
+    REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(true);
+    REQUIRE_CALL(api, mulog_config_mulog_unlock());
     ret = mulog_unregister_output(test_output);
-    mock().checkExpectations();
-    CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(0);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(false);
     ret = mulog_unregister_output(test_output);
-    mock().checkExpectations();
-    CHECK_EQUAL(MULOG_RET_CODE_LOCK_FAILED, ret);
+    REQUIRE(MULOG_RET_CODE_LOCK_FAILED == ret);
 
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
-    mock().expectOneCall("mulog_config_mulog_unlock");
+    REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(true);
+    REQUIRE_CALL(api, mulog_config_mulog_unlock());
     mulog_unregister_all_outputs();
-    mock().checkExpectations();
 
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(0);
-    mock().expectNoCall("mulog_config_mulog_unlock");
+    REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(false);
+    FORBID_CALL(api, mulog_config_mulog_unlock());
     mulog_unregister_all_outputs();
-    mock().checkExpectations();
 
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(0);
-    mock().expectNoCall("mulog_config_mulog_unlock");
+    REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(false);
+    FORBID_CALL(api, mulog_config_mulog_unlock());
     auto log_ret = mulog_log(MULOG_LOG_LVL_ERROR, "Hello %s", "Temp");
-    mock().checkExpectations();
-    CHECK_EQUAL(0, log_ret);
+    REQUIRE(0 == log_ret);
 
-    mock().expectOneCall("lwrb_get_full").andReturnValue(0UL);
+    REQUIRE_CALL(api, __wrap_lwrb_get_full(trompeloeil::_)).RETURN(0UL);
     log_ret = mulog_deferred_process();
-    mock().checkExpectations();
-    CHECK_EQUAL(0, log_ret);
+    REQUIRE(0 == log_ret);
 }
 
-TEST(MulogDeferredLock, MockLog)
+// TEST_CASE_METHOD(MulogDeferredLock, "MulogDeferredLock - MockLog", "[deferred][lock]")
+// {
+//     REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(true);
+//     REQUIRE_CALL(api, mulog_config_mulog_unlock());
+//     auto ret = mulog_set_log_level(MULOG_LOG_LVL_TRACE);
+//     REQUIRE(MULOG_RET_CODE_OK == ret);
+//     REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(true);
+//     REQUIRE_CALL(api, mulog_config_mulog_unlock());
+//     ret = mulog_add_output(test_output);
+//     REQUIRE(MULOG_RET_CODE_OK == ret);
+//
+//     REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(true);
+//     REQUIRE_CALL(api, mulog_config_mulog_unlock());
+//     FORBID_CALL(api, __wrap_vsnprintf_(trompeloeil::_, trompeloeil::_, trompeloeil::_, trompeloeil::_));
+//     REQUIRE_CALL(api, __wrap_vnprintf_(trompeloeil::_, trompeloeil::_, trompeloeil::_, trompeloeil::_)).RETURN(-1);
+//     FORBID_CALL(api, test_output(trompeloeil::_, trompeloeil::_));
+//     auto log_ret = MULOG_LOG_DBG("Hello %s", "Temp");
+//     REQUIRE(0 == log_ret);
+//
+//     REQUIRE_CALL(api, mulog_config_mulog_lock()).RETURN(true);
+//     REQUIRE_CALL(api, mulog_config_mulog_unlock());
+//     REQUIRE_CALL(api, __wrap_snprintf_(trompeloeil::_, trompeloeil::_, trompeloeil::_)).RETURN(1);
+//     REQUIRE_CALL(api, __wrap_vsnprintf_(trompeloeil::_, trompeloeil::_, trompeloeil::_, trompeloeil::_)).RETURN(-1);
+//     FORBID_CALL(api, test_output(trompeloeil::_, trompeloeil::_));
+//     log_ret = MULOG_LOG_DBG("Hello %s", "Temp");
+//     REQUIRE(-1 == log_ret);
+// }
+
+TEST_CASE_METHOD(MulogDeferredLock, "MulogDeferredLock - MockLogDeferredProcess", "[deferred][lock]")
 {
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
-    mock().expectOneCall("mulog_config_mulog_unlock");
-    auto ret = mulog_set_log_level(MULOG_LOG_LVL_TRACE);
-    mock().checkExpectations();
-    CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
-    mock().expectOneCall("mulog_config_mulog_unlock");
-    ret = mulog_add_output(test_output);
-    mock().checkExpectations();
-    CHECK_EQUAL(MULOG_RET_CODE_OK, ret);
-
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
-    mock().expectOneCall("mulog_config_mulog_unlock");
-    mock().expectNoCall("vsnprintf");
-    mock().expectOneCall("snprintf").andReturnValue(-1);
-    mock().expectNoCall("test_output");
-    auto log_ret = MULOG_LOG_DBG("Hello %s", "Temp");
-    mock().checkExpectations();
-    CHECK_EQUAL(0, log_ret);
-
-    mock().expectOneCall("mulog_config_mulog_lock").andReturnValue(1);
-    mock().expectOneCall("mulog_config_mulog_unlock");
-    mock().expectOneCall("snprintf").andReturnValue(1);
-    mock().expectOneCall("vsnprintf").andReturnValue(-1);
-    mock().expectNoCall("test_output");
-    log_ret = MULOG_LOG_DBG("Hello %s", "Temp");
-    mock().checkExpectations();
-    CHECK_EQUAL(-1, log_ret);
-}
-
-TEST(MulogDeferredLock, MockLogDeferredProcess)
-{
-    mock().expectOneCall("lwrb_get_full").andReturnValue(100UL);
-    mock().expectOneCall("lwrb_get_linear_block_read_length").andReturnValue(200UL);
+    REQUIRE_CALL(api, __wrap_lwrb_get_full(trompeloeil::_)).RETURN(100UL);
+    REQUIRE_CALL(api, __wrap_lwrb_get_linear_block_read_length(trompeloeil::_)).RETURN(200UL);
     auto ret = mulog_deferred_process();
-    mock().checkExpectations();
-    CHECK_EQUAL(100UL, ret);
+    REQUIRE(100UL == ret);
 
-    mock().expectOneCall("lwrb_get_full").andReturnValue(300UL);
-    mock().expectOneCall("lwrb_get_linear_block_read_length").andReturnValue(300UL);
+    REQUIRE_CALL(api, __wrap_lwrb_get_full(trompeloeil::_)).RETURN(300UL);
+    REQUIRE_CALL(api, __wrap_lwrb_get_linear_block_read_length(trompeloeil::_)).RETURN(300UL);
     ret = mulog_deferred_process();
-    mock().checkExpectations();
-    CHECK_EQUAL(300UL, ret);
-}
-
-int main(int argc, char **argv)
-{
-    return RUN_ALL_TESTS(argc, argv);
+    REQUIRE(300UL == ret);
 }

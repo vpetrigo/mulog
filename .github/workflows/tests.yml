@@ -12,20 +12,44 @@ jobs:
 
   build-coverage:
     runs-on: ubuntu-latest
-    container: gcc:${{ matrix.tag }}
+    container: ${{ matrix.compiler == 'gcc' && format('gcc:{0}', matrix.tag) || format('teeks99/clang-ubuntu:{0}', matrix.tag) }}
     strategy:
       fail-fast: false
       matrix:
-        tag: [ 13, 14, 15 ]
+        compiler: [gcc]
+        tag: [13, 14, 15]
         config: [ default-deferred, default-realtime ]
+
+        include:
+          - compiler: clang
+            tag: 19
+            config: default-deferred
+          - compiler: clang
+            tag: 19
+            config: default-realtime
+          - compiler: clang
+            tag: 20
+            config: default-deferred
+          - compiler: clang
+            tag: 20
+            config: default-realtime
     steps:
+      - name: Install dependencies
+        run: apt update && apt install cmake ninja-build python3-pip git -y
       - uses: actions/checkout@v5
         with:
           submodules: true
-      - name: Install dependencies
-        run: apt update && apt install cmake ninja-build python3-pip -y
       - name: Install gcovr
         run: pip install --break-system-packages gcovr
+      - name: Install dependencies (Clang)
+        if: matrix.compiler == 'clang'
+        run: apt install llvm-${{ matrix.tag }} -y
+      - name: Set compiler environment (Clang)
+        if: matrix.compiler == 'clang'
+        run: |
+          echo "CC=clang" >> $GITHUB_ENV
+          echo "CXX=clang++" >> $GITHUB_ENV
+          echo "PATH=/usr/lib/llvm-${{ matrix.tag }}/bin:$PATH" >> $GITHUB_ENV
       - name: Run tests with coverage options
         run: |
           cmake --preset ${{ matrix.config }}

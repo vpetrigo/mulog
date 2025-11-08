@@ -19,26 +19,39 @@ option(MULOG_INSTALL_LIBRARY "Install mulog library" OFF)
 set(dependencies "")
 
 if (MULOG_ENABLE_TESTING)
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        set(GCOV_EXECUTABLE "llvm-cov gcov")
+    else ()
+        set(GCOV_EXECUTABLE "gcov")
+    endif ()
+
     include(CTest)
-    include(cmake/mulog_cpputest_utils.cmake)
-    FetchContent_Declare(cpputest_library
-            GIT_REPOSITORY https://github.com/cpputest/cpputest.git
-            GIT_TAG 114267515a4d90c9683fce988bd71d5d9b405ac4
+    include(cmake/mulog_test_utils.cmake)
+    FetchContent_Declare(test_library
+            GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+            GIT_TAG v3.11.0
             EXCLUDE_FROM_ALL)
-    list(APPEND dependencies cpputest_library)
+    FetchContent_Declare(mock_library
+            GIT_REPOSITORY https://github.com/rollbear/trompeloeil.git
+            GIT_TAG v49
+            EXCLUDE_FROM_ALL)
+    list(APPEND dependencies test_library mock_library)
     enable_testing()
     add_compile_options(--coverage)
     add_link_options(--coverage)
-    # Disable CppUTest related tests
-    set(TESTS OFF CACHE BOOL "Overwrite CppUTest TESTS variable")
-    set(C++11 ON CACHE BOOL "Overwrite CppUTest C++11 variable")
     add_subdirectory(src/)
 
     add_custom_target(coverage
-            COMMAND gcovr -r ${CMAKE_CURRENT_LIST_DIR}/src . -e ".*_test.cpp"
-            -e ".*main.c"
+            COMMAND gcovr -r ${CMAKE_CURRENT_LIST_DIR}
+            --gcov-executable "${GCOV_EXECUTABLE}"
+            --exclude ".*_test\\.cpp"
+            --exclude ".*main\\.c"
+            --filter "${CMAKE_CURRENT_LIST_DIR}/src/.*\\.(c|h)"
+            --gcov-ignore-errors no_working_dir_found
             --html-theme github.dark-blue
-            --html-details coverage.html -x coverage.info)
+            --html-details coverage.html -x coverage.info
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            VERBATIM)
 endif ()
 
 if (MULOG_BUILD_EXAMPLES)
