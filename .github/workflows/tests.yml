@@ -27,15 +27,6 @@ jobs:
           submodules: true
       - name: Install gcovr
         run: pip install --break-system-packages gcovr
-      - name: Install dependencies (Clang)
-        if: matrix.compiler == 'clang'
-        run: apt install llvm-${{ matrix.tag }} -y
-      - name: Set compiler environment (Clang)
-        if: matrix.compiler == 'clang'
-        run: |
-          echo "CC=clang" >> $GITHUB_ENV
-          echo "CXX=clang++" >> $GITHUB_ENV
-          echo "PATH=/usr/lib/llvm-${{ matrix.tag }}/bin:$PATH" >> $GITHUB_ENV
       - name: Run tests with coverage options
         run: |
           cmake --preset ${{ matrix.config }}
@@ -54,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag: [ 17, 18, 19, 20 ]
+        tag: [ 15, 16, 17, 18, 19, 20 ]
         config: [ default-deferred, default-realtime ]
     steps:
       - name: Install dependencies
