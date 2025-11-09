@@ -1,7 +1,15 @@
 if (NOT MULOG_ENABLE_DEFERRED_LOGGING)
     add_executable(realtime realtime.c)
     target_link_libraries(realtime PRIVATE mulog::mulog)
+
+    if (MULOG_ENABLE_TESTING)
+        mulog_add_coverage_flags(realtime)
+    endif ()
 else ()
     add_executable(deferred deferred.c)
     target_link_libraries(deferred PRIVATE mulog::mulog)
+
+    if (MULOG_ENABLE_TESTING)
+        mulog_add_coverage_flags(deferred)
+    endif ()
 endif ()
