@@ -27,9 +27,10 @@ jobs:
           submodules: true
       - name: Install gcovr
         run: |
-          pip install --user pip
-          $HOME/.local/bin/pip install --user gcovr
-          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+          pip install pipx
+          pipx install gcovr
+          pipx ensurepath
+          echo "PATH=$PATH" >> $GITHUB_ENV
       - name: Run tests with coverage options
         run: |
           cmake --preset ${{ matrix.config }}
