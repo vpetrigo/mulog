@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag: [ 13, 14, 15 ]
+        tag: [ 8, 9, 10, 11, 12, 13, 14, 15 ]
         config: [ default-deferred, default-realtime ]
 
     steps:
@@ -54,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag: [ 19, 20 ]
+        tag: [ 17, 18, 19, 20 ]
         config: [ default-deferred, default-realtime ]
     steps:
       - name: Install dependencies
