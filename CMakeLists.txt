@@ -19,11 +19,24 @@ option(MULOG_INSTALL_LIBRARY "Install mulog library" OFF)
 set(dependencies "")
 
 if (MULOG_ENABLE_TESTING)
+    find_program(GCOVR gcovr)
+
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        set(GCOV_EXECUTABLE "llvm-cov gcov")
+        find_program(LLVM_COV llvm-cov)
+        set(GCOV_EXECUTABLE "${LLVM_COV} gcov")
+        set(coverage_compile_flags -fprofile-arcs -ftest-coverage -fprofile-instr-generate -fcoverage-mapping)
+        set(coverage_link_flags -fprofile-arcs -ftest-coverage -fprofile-instr-generate)
     else ()
-        set(GCOV_EXECUTABLE "gcov")
+        find_program(GCOV gcov)
+        set(GCOV_EXECUTABLE "${GCOV}")
+        set(coverage_compile_flags --coverage)
+        set(coverage_link_flags --coverage)
     endif ()
+
+    macro(mulog_add_coverage_flags target)
+        target_compile_options(${target} PRIVATE ${coverage_compile_flags})
+        target_link_options(${target} PRIVATE ${coverage_link_flags})
+    endmacro()
 
     include(CTest)
     include(cmake/mulog_test_utils.cmake)
@@ -37,20 +50,22 @@ if (MULOG_ENABLE_TESTING)
             EXCLUDE_FROM_ALL)
     list(APPEND dependencies test_library mock_library)
     enable_testing()
-    add_compile_options(--coverage)
-    add_link_options(--coverage)
     add_subdirectory(src/)
 
     add_custom_target(coverage
-            COMMAND gcovr -r ${CMAKE_CURRENT_LIST_DIR}
-            --gcov-executable "${GCOV_EXECUTABLE}"
-            --exclude ".*_test\\.cpp"
-            --exclude ".*main\\.c"
-            --filter "${CMAKE_CURRENT_LIST_DIR}/src/.*\\.(c|h)"
-            --gcov-ignore-errors no_working_dir_found
-            --html-theme github.dark-blue
-            --html-details coverage.html -x coverage.info
+            COMMAND ${CMAKE_COMMAND} -E remove_directory coverage
+            COMMAND ${CMAKE_COMMAND} -E make_directory coverage
+            COMMAND gcovr
+                -r ${CMAKE_CURRENT_LIST_DIR}
+                --gcov-executable "${GCOV_EXECUTABLE}"
+                --exclude ".*_test\.cpp"
+                --filter "${CMAKE_SOURCE_DIR}/src"
+                --html-theme github.dark-blue
+                --html-details coverage/index.html
+                -x coverage.info
+                --print-summary
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Generating coverage report with gcovr"
             VERBATIM)
 endif ()
 
@@ -104,6 +119,10 @@ target_compile_definitions(mulog
         -DMULOG_INTERNAL_ENABLE_LOCKING=$<IF:$<BOOL:${MULOG_ENABLE_LOCKING}>,1,0>
         PUBLIC
         $<$<BOOL:${MULOG_ENABLE_DEFERRED_LOGGING}>:MULOG_ENABLE_DEFERRED_LOGGING=1>)
+
+if (MULOG_ENABLE_TESTING)
+    mulog_add_coverage_flags(mulog)
+endif ()
 
 if (custom_config_path_len GREATER 0)
     target_compile_definitions(mulog PRIVATE -DMULOG_INTERNAL_CONFIG_PATH="${MULOG_CUSTOM_CONFIG}")
