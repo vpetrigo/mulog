@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag: [ 8, 9, 10, 11, 12, 13, 14, 15 ]
+        tag: [ 9, 10, 11, 12, 13, 14, 15 ]
         config: [ default-deferred, default-realtime ]
 
     steps:
@@ -26,7 +26,9 @@ jobs:
         with:
           submodules: true
       - name: Install gcovr
-        run: pip install --break-system-packages gcovr
+        run: |
+          pip install -U pip
+          pip install --break-system-packages gcovr
       - name: Run tests with coverage options
         run: |
           cmake --preset ${{ matrix.config }}
@@ -54,7 +56,9 @@ jobs:
         with:
           submodules: true
       - name: Install gcovr
-        run: pip install --break-system-packages gcovr
+        run: |
+          pip install -U pip
+          pip install --break-system-packages gcovr
       - name: Install dependencies (Clang)
         run: apt install llvm-${{ matrix.tag }} -y
       - name: Set compiler environment (Clang)
