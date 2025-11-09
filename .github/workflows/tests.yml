@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Install dependencies
-        run: apt update && apt install cmake ninja-build python3-pip git -y
+        run: apt update && apt install cmake ninja-build python3-pip git python3-venv -y
       - uses: actions/checkout@v5
         with:
           submodules: true
@@ -53,15 +53,16 @@ jobs:
         config: [ default-deferred, default-realtime ]
     steps:
       - name: Install dependencies
-        run: apt update && apt install cmake ninja-build python3-pip git -y
+        run: apt update && apt install cmake ninja-build python3-pip git python3-venv -y
       - uses: actions/checkout@v5
         with:
           submodules: true
       - name: Install gcovr
         run: |
-          pip install --user pip
-          $HOME/.local/bin/pip install --user gcovr
-          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
+          pip install pipx
+          pipx install gcovr
+          pipx ensurepath
+          echo "PATH=$PATH" >> $GITHUB_ENV
       - name: Install dependencies (Clang)
         run: apt install llvm-${{ matrix.tag }} -y
       - name: Set compiler environment (Clang)
