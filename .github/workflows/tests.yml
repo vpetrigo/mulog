@@ -27,8 +27,9 @@ jobs:
           submodules: true
       - name: Install gcovr
         run: |
-          pip install -U pip
-          pip install --break-system-packages gcovr
+          pip install --user pip
+          $HOME/.local/bin/pip install --user gcovr
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
       - name: Run tests with coverage options
         run: |
           cmake --preset ${{ matrix.config }}
@@ -57,8 +58,9 @@ jobs:
           submodules: true
       - name: Install gcovr
         run: |
-          pip install -U pip
-          pip install --break-system-packages gcovr
+          pip install --user pip
+          $HOME/.local/bin/pip install --user gcovr
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
       - name: Install dependencies (Clang)
         run: apt install llvm-${{ matrix.tag }} -y
       - name: Set compiler environment (Clang)
