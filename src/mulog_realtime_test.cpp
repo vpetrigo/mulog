@@ -10,8 +10,9 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/trompeloeil.hpp>
 
+#include <fmt/format.h>
+
 #include <array>
-#include <format>
 #include <iostream>
 #include <string>
 
@@ -50,7 +51,7 @@ namespace {
         if constexpr (MULOG_ENABLE_TIMESTAMP) {
             const auto timestamp_ms = mulog_config_mulog_timestamp_get();
             auto view =
-                std::format("{:07}.{:03} {}: {}{}", timestamp_ms / 1000, timestamp_ms % 1000,
+                fmt::format("{:07}.{:03} {}: {}{}", timestamp_ms / 1000, timestamp_ms % 1000,
                             log_levels[log_level], input, MULOG_LOG_LINE_TERMINATION);
 
             if (view.size() > max_size) {
@@ -60,7 +61,7 @@ namespace {
             return view;
         } else {
             auto view =
-                std::format("{}: {}{}", log_levels[log_level], input, MULOG_LOG_LINE_TERMINATION);
+                fmt::format("{}: {}{}", log_levels[log_level], input, MULOG_LOG_LINE_TERMINATION);
 
             return view.size() < max_size ? view : view.substr(0, max_size);
         }

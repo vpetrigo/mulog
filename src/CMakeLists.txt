@@ -2,7 +2,7 @@ mulog_test_register_test(list)
 set_target_properties(list_test PROPERTIES CXX_STANDARD 20)
 
 if (NOT MULOG_ENABLE_DEFERRED_LOGGING)
-    mulog_test_register_test(mulog_realtime mulog)
+    mulog_test_register_test(mulog_realtime mulog fmt::fmt)
     set_target_properties(mulog_realtime_test PROPERTIES CXX_STANDARD 20)
     target_compile_definitions(mulog_realtime_test PRIVATE
             -DMULOG_INTERNAL_ENABLE_TIMESTAMP_OUTPUT=$<IF:$<BOOL:${MULOG_ENABLE_TIMESTAMP_OUTPUT}>,1,0>
@@ -18,7 +18,7 @@ if (NOT MULOG_ENABLE_DEFERRED_LOGGING)
     mulog_test_add_wrappers(mulog_realtime_lock vsnprintf_ snprintf_)
     mulog_add_coverage_flags(mulog_realtime_lock_test)
 else ()
-    mulog_test_register_test(mulog_deferred mulog)
+    mulog_test_register_test(mulog_deferred mulog fmt::fmt)
     set_target_properties(mulog_deferred_test PROPERTIES CXX_STANDARD 20)
     target_compile_definitions(mulog_deferred_test PRIVATE
             -DMULOG_INTERNAL_ENABLE_TIMESTAMP_OUTPUT=$<IF:$<BOOL:${MULOG_ENABLE_TIMESTAMP_OUTPUT}>,1,0>
