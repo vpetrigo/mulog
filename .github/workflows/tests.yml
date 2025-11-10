@@ -32,7 +32,7 @@ jobs:
           pip install pipx
           pipx install gcovr
           pipx ensurepath
-          echo "PATH=$PATH" >> $GITHUB_ENV
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
       - name: Run tests with coverage options
         run: |
           cmake --preset ${{ matrix.config }}
@@ -65,8 +65,7 @@ jobs:
           . venv/bin/activate
           pip install pipx
           pipx install gcovr
-          pipx ensurepath
-          echo "PATH=$PATH" >> $GITHUB_ENV
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
       - name: Install dependencies (Clang)
         run: apt install llvm-${{ matrix.tag }} -y
       - name: Set compiler environment (Clang)
