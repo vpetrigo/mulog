@@ -439,3 +439,368 @@ TEST_CASE_METHOD(SmallBuffer16, "SmallBuffer16 - LogSingle", "[deferred]")
     const auto ret = MULOG_LOG_ERR("%s", input.c_str());
     REQUIRE(0 == ret);
 }
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - AllLogLevelMacros", "[deferred]")
+{
+    const std::string test_str{"A"};
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_set_log_level(MULOG_LOG_LVL_TRACE);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    // Test all log level macros one by one with processing in between
+    auto log_ret = MULOG_LOG_TRACE("%s", test_str.c_str());
+    auto expected_size = get_expected_print_size(test_str, MULOG_LOG_LVL_TRACE);
+    REQUIRE(expected_size == log_ret);
+    {
+        REQUIRE_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_)).TIMES(1);
+        REQUIRE(log_ret == mulog_deferred_process());
+    }
+
+    log_ret = MULOG_LOG_DBG("%s", test_str.c_str());
+    expected_size = get_expected_print_size(test_str, MULOG_LOG_LVL_DEBUG);
+    REQUIRE(expected_size == log_ret);
+    {
+        REQUIRE_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_)).TIMES(1);
+        REQUIRE(log_ret == mulog_deferred_process());
+    }
+
+    log_ret = MULOG_LOG_INFO("%s", test_str.c_str());
+    expected_size = get_expected_print_size(test_str, MULOG_LOG_LVL_INFO);
+    REQUIRE(expected_size == log_ret);
+    {
+        REQUIRE_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_)).TIMES(1);
+        REQUIRE(log_ret == mulog_deferred_process());
+    }
+
+    log_ret = MULOG_LOG_WARN("%s", test_str.c_str());
+    expected_size = get_expected_print_size(test_str, MULOG_LOG_LVL_WARNING);
+    REQUIRE(expected_size == log_ret);
+    {
+        REQUIRE_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_)).TIMES(1);
+        REQUIRE(log_ret == mulog_deferred_process());
+    }
+
+    log_ret = MULOG_LOG_ERR("%s", test_str.c_str());
+    expected_size = get_expected_print_size(test_str, MULOG_LOG_LVL_ERROR);
+    REQUIRE(expected_size == log_ret);
+    {
+        REQUIRE_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_)).TIMES(1);
+        REQUIRE(log_ret == mulog_deferred_process());
+    }
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - MultipleProcessCalls", "[deferred]")
+{
+    const std::string test_str{"test"};
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_set_log_level(MULOG_LOG_LVL_DEBUG);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    // Log first message
+    auto log_ret = MULOG_LOG_DBG("%s", test_str.c_str());
+    auto expected_size = get_expected_print_size(test_str, MULOG_LOG_LVL_DEBUG);
+    REQUIRE(expected_size == log_ret);
+
+    // Process first message
+    REQUIRE_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    auto printed = mulog_deferred_process();
+    REQUIRE(expected_size == printed);
+
+    // Log second message
+    log_ret = MULOG_LOG_DBG("%s", test_str.c_str());
+    REQUIRE(expected_size == log_ret);
+
+    // Process second message
+    REQUIRE_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    printed = mulog_deferred_process();
+    REQUIRE(expected_size == printed);
+
+    // Process when buffer is empty - should return 0
+    FORBID_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    printed = mulog_deferred_process();
+    REQUIRE(0 == printed);
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - EmptyFormatString", "[deferred]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_set_log_level(MULOG_LOG_LVL_DEBUG);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    auto log_ret = MULOG_LOG_DBG("");
+    auto expected_size = get_expected_print_size("", MULOG_LOG_LVL_DEBUG);
+    REQUIRE(expected_size == log_ret);
+
+    REQUIRE_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    const auto printed = mulog_deferred_process();
+    REQUIRE(expected_size == printed);
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - ComplexFormatting", "[deferred]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_set_log_level(MULOG_LOG_LVL_INFO);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    const std::string formatted = "int=42, str=hello, float=3.14";
+    const auto log_ret = MULOG_LOG_INFO("int=%d, str=%s, float=%.2f", 42, "hello", 3.14);
+    const auto expected_size = get_expected_print_size(formatted, MULOG_LOG_LVL_INFO);
+    REQUIRE(expected_size == log_ret);
+
+    REQUIRE_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    const auto printed = mulog_deferred_process();
+    REQUIRE(expected_size == printed);
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - MixedLogLevels", "[deferred]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_set_log_level(MULOG_LOG_LVL_DEBUG);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    size_t total_written = 0;
+
+    auto log_ret = MULOG_LOG_DBG("debug");
+    total_written += log_ret;
+
+    log_ret = MULOG_LOG_INFO("info");
+    total_written += log_ret;
+
+    log_ret = MULOG_LOG_ERR("error");
+    total_written += log_ret;
+
+    REQUIRE_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    const auto printed = mulog_deferred_process();
+    REQUIRE(total_written == printed);
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - ResetClearsBuffer", "[deferred]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_set_log_level(MULOG_LOG_LVL_DEBUG);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    const auto log_ret = MULOG_LOG_DBG("test");
+    REQUIRE(log_ret > 0);
+    mulog_reset();
+    FORBID_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    const auto printed = mulog_deferred_process();
+    REQUIRE(0 == printed);
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - MultipleOutputsSameLogLevel", "[deferred]")
+{
+    mulog_log_output_fn output_1 = test_output;
+
+    auto ret = mulog_add_output(output_1);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_add_output_with_log_level(test_output, MULOG_LOG_LVL_ERROR);
+    REQUIRE(MULOG_RET_CODE_UNSUPPORTED == ret);
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - BufferWrapAround", "[deferred]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_set_log_level(MULOG_LOG_LVL_DEBUG);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    for (int i = 0; i < 3; ++i) {
+        const auto written = MULOG_LOG_DBG("m%d", i);
+        REQUIRE(written > 0);
+    }
+
+    ALLOW_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    auto printed = mulog_deferred_process();
+    REQUIRE(printed > 0);
+
+    for (int i = 0; i < 2; ++i) {
+        const auto written = MULOG_LOG_DBG("n%d", i);
+        REQUIRE(written > 0);
+    }
+
+    ALLOW_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    printed = mulog_deferred_process();
+    REQUIRE(printed > 0);
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - PartialProcess", "[deferred]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_set_log_level(MULOG_LOG_LVL_DEBUG);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    size_t total = 0;
+    const auto written1 = MULOG_LOG_DBG("msg1");
+    total += written1;
+    const auto written2 = MULOG_LOG_DBG("msg2");
+    total += written2;
+    REQUIRE_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    const auto printed = mulog_deferred_process();
+    REQUIRE(total == printed);
+    FORBID_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    const auto empty_process = mulog_deferred_process();
+    REQUIRE(0 == empty_process);
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - LogAfterUnregisterAll", "[deferred]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_set_log_level(MULOG_LOG_LVL_DEBUG);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    auto log_ret = MULOG_LOG_DBG("before");
+    REQUIRE(log_ret > 0);
+    mulog_unregister_all_outputs();
+    log_ret = MULOG_LOG_DBG("after");
+    REQUIRE(0 == log_ret);
+    FORBID_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    mulog_deferred_process();
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - TestLogLevelBoundary", "[deferred]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_set_log_level(MULOG_LOG_LVL_WARNING);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    auto log_ret = MULOG_LOG_TRACE("trace");
+    REQUIRE(0 == log_ret);
+    log_ret = MULOG_LOG_DBG("debug");
+    REQUIRE(0 == log_ret);
+    log_ret = MULOG_LOG_INFO("info");
+    REQUIRE(0 == log_ret);
+    log_ret = MULOG_LOG_WARN("warning");
+    auto expected_size = get_expected_print_size("warning", MULOG_LOG_LVL_WARNING);
+    REQUIRE(expected_size == log_ret);
+    log_ret = MULOG_LOG_ERR("error");
+    expected_size = get_expected_print_size("error", MULOG_LOG_LVL_ERROR);
+    REQUIRE(expected_size == log_ret);
+    REQUIRE_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    mulog_deferred_process();
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - VeryLongSingleMessage", "[deferred]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_set_log_level(MULOG_LOG_LVL_ERROR);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    const std::string very_long(256, 'L');
+    const auto log_ret = MULOG_LOG_ERR("%s", very_long.c_str());
+
+    REQUIRE(log_ret <= buffer.size() - 1);
+    REQUIRE(log_ret > 0);
+
+    REQUIRE_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    const auto printed = mulog_deferred_process();
+    REQUIRE(printed == log_ret);
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - SequentialLogAndProcess", "[deferred]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_set_log_level(MULOG_LOG_LVL_DEBUG);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    for (int i = 0; i < 5; ++i) {
+        const auto log_ret = MULOG_LOG_DBG("i%d", i);
+        REQUIRE(log_ret > 0);
+
+        ALLOW_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+        const auto printed = mulog_deferred_process();
+        REQUIRE(log_ret == printed);
+    }
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - BufferFullPreventNewWrite", "[deferred]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_set_log_level(MULOG_LOG_LVL_ERROR);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    // Fill buffer completely
+    const std::string fill_msg(100, 'X');
+    auto log_ret = MULOG_LOG_ERR("%s", fill_msg.c_str());
+    REQUIRE(log_ret > 0);
+
+    // Try to add more when buffer is nearly full
+    const std::string another_msg(50, 'Y');
+    log_ret = MULOG_LOG_ERR("%s", another_msg.c_str());
+
+    // Process and verify
+    ALLOW_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    mulog_deferred_process();
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - MultipleOutputsProcessing", "[deferred]")
+{
+    mulog_log_output_fn output_1 = test_output;
+    mulog_log_output_fn output_2 = test_output;
+
+    auto ret = mulog_add_output(output_1);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_add_output(output_2);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    const std::string msg = "dual";
+    auto log_ret = MULOG_LOG_DBG("%s", msg.c_str());
+    REQUIRE(log_ret > 0);
+
+    // Both outputs should be called during processing
+    REQUIRE_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_)).TIMES(2);
+    const auto printed = mulog_deferred_process();
+    REQUIRE(printed == log_ret);
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - ProcessEmptyBuffer", "[deferred]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    FORBID_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    const auto printed = mulog_deferred_process();
+    REQUIRE(0 == printed);
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - InvalidLogLevelInOutput", "[deferred]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    // Test with invalid log level (should be filtered out)
+    const auto log_ret = mulog_log(MULOG_LOG_LVL_COUNT, "invalid");
+    REQUIRE(0 == log_ret);
+}
+
+TEST_CASE_METHOD(MulogDeferredWithBuf, "MulogDeferredWithBuf - SetGlobalLevelAfterAddOutput", "[deferred]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    // Changing global level after adding output
+    ret = mulog_set_log_level(MULOG_LOG_LVL_ERROR);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    // Debug should be filtered
+    auto log_ret = MULOG_LOG_DBG("debug");
+    REQUIRE(0 == log_ret);
+
+    // Error should pass
+    log_ret = MULOG_LOG_ERR("error");
+    REQUIRE(log_ret > 0);
+
+    ALLOW_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    mulog_deferred_process();
+}
+

@@ -427,3 +427,228 @@ TEST_CASE_METHOD(Mulog41ByteBuffer, "Mulog41ByteBuffer - SingleLog", "[mulog]")
     MULOG_LOG_DBG("%s", input.c_str());
     REQUIRE(expected == std::string(buffer.data()));
 }
+
+TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestAllLogLevelMacros", "[mulog]")
+{
+    const std::string test_str{"test"};
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_set_log_level(MULOG_LOG_LVL_TRACE);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    auto expected = generate_expected_output(test_str, MULOG_LOG_LVL_TRACE, buffer.size() - 1);
+    REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
+    MULOG_LOG_TRACE("%s", test_str.c_str());
+
+    expected = generate_expected_output(test_str, MULOG_LOG_LVL_DEBUG, buffer.size() - 1);
+    REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
+    MULOG_LOG_DBG("%s", test_str.c_str());
+
+    expected = generate_expected_output(test_str, MULOG_LOG_LVL_INFO, buffer.size() - 1);
+    REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
+    MULOG_LOG_INFO("%s", test_str.c_str());
+
+    expected = generate_expected_output(test_str, MULOG_LOG_LVL_WARNING, buffer.size() - 1);
+    REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
+    MULOG_LOG_WARN("%s", test_str.c_str());
+
+    expected = generate_expected_output(test_str, MULOG_LOG_LVL_ERROR, buffer.size() - 1);
+    REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
+    MULOG_LOG_ERR("%s", test_str.c_str());
+}
+
+TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestLogLevelFiltering", "[mulog]")
+{
+    const std::string test_str{"test"};
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    ret = mulog_set_log_level(MULOG_LOG_LVL_INFO);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    FORBID_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    MULOG_LOG_TRACE("%s", test_str.c_str());
+    MULOG_LOG_DBG("%s", test_str.c_str());
+
+    auto expected = generate_expected_output(test_str, MULOG_LOG_LVL_INFO, buffer.size() - 1);
+    REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
+    MULOG_LOG_INFO("%s", test_str.c_str());
+
+    expected = generate_expected_output(test_str, MULOG_LOG_LVL_WARNING, buffer.size() - 1);
+    REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
+    MULOG_LOG_WARN("%s", test_str.c_str());
+
+    expected = generate_expected_output(test_str, MULOG_LOG_LVL_ERROR, buffer.size() - 1);
+    REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
+    MULOG_LOG_ERR("%s", test_str.c_str());
+}
+
+TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestChannelLogLevelUpdate", "[mulog]")
+{
+    const std::string test_str{"test"};
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    ret = mulog_set_log_level(MULOG_LOG_LVL_TRACE);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    ret = mulog_set_channel_log_level(test_output, MULOG_LOG_LVL_ERROR);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    FORBID_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    MULOG_LOG_TRACE("%s", test_str.c_str());
+    MULOG_LOG_DBG("%s", test_str.c_str());
+    MULOG_LOG_INFO("%s", test_str.c_str());
+    MULOG_LOG_WARN("%s", test_str.c_str());
+
+    const auto expected = generate_expected_output(test_str, MULOG_LOG_LVL_ERROR, buffer.size() - 1);
+    REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
+    MULOG_LOG_ERR("%s", test_str.c_str());
+}
+
+TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestGlobalLogLevelChangeAffectsAll", "[mulog]")
+{
+    const std::string test_str{"test"};
+    auto ret = mulog_add_output(multi_output_1);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_add_output(multi_output_2);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    ret = mulog_set_log_level(MULOG_LOG_LVL_DEBUG);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    FORBID_CALL(output_mock, multi_output_1(trompeloeil::_, trompeloeil::_));
+    FORBID_CALL(output_mock, multi_output_2(trompeloeil::_, trompeloeil::_));
+    MULOG_LOG_TRACE("%s", test_str.c_str());
+
+    const auto expected = generate_expected_output(test_str, MULOG_LOG_LVL_DEBUG, buffer.size() - 1);
+    REQUIRE_CALL(output_mock, multi_output_1(get_log_buffer(), expected.size()));
+    REQUIRE_CALL(output_mock, multi_output_2(get_log_buffer(), expected.size()));
+    MULOG_LOG_DBG("%s", test_str.c_str());
+}
+
+TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestResetClearsOutputs", "[mulog]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    REQUIRE_CALL(output_mock, test_output(buffer.data(), trompeloeil::_));
+    MULOG_LOG_DBG("before reset");
+
+    mulog_reset();
+
+    FORBID_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    MULOG_LOG_DBG("after reset");
+}
+
+TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestUnregisterAllOutputs", "[mulog]")
+{
+    auto ret = mulog_add_output(multi_output_1);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+    ret = mulog_add_output(multi_output_2);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    REQUIRE_CALL(output_mock, multi_output_1(buffer.data(), trompeloeil::_));
+    REQUIRE_CALL(output_mock, multi_output_2(buffer.data(), trompeloeil::_));
+    MULOG_LOG_DBG("before unregister");
+
+    mulog_unregister_all_outputs();
+
+    FORBID_CALL(output_mock, multi_output_1(trompeloeil::_, trompeloeil::_));
+    FORBID_CALL(output_mock, multi_output_2(trompeloeil::_, trompeloeil::_));
+    MULOG_LOG_DBG("after unregister");
+}
+
+TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestEmptyFormatString", "[mulog]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    const auto expected = generate_expected_output("", MULOG_LOG_LVL_DEBUG, buffer.size() - 1);
+    REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
+    MULOG_LOG_DBG("");
+}
+
+TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestComplexFormatting", "[mulog]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    const std::string formatted = "int=42, str=hello, float=3.14";
+    const auto expected = generate_expected_output(formatted, MULOG_LOG_LVL_INFO, buffer.size() - 1);
+    REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
+    MULOG_LOG_INFO("int=%d, str=%s, float=%.2f", 42, "hello", 3.14);
+}
+
+TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestLogWithoutOutput", "[mulog]")
+{
+    // No output registered
+    FORBID_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
+    MULOG_LOG_DBG("no output");
+}
+
+TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestMultipleUnregisterSameOutput", "[mulog]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    ret = mulog_unregister_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    ret = mulog_unregister_output(test_output);
+    REQUIRE(MULOG_RET_CODE_NOT_FOUND == ret);
+}
+
+TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestSetChannelLogLevelNotFound", "[mulog]")
+{
+    // Try to set log level for non-existent output
+    auto ret = mulog_set_channel_log_level(test_output, MULOG_LOG_LVL_ERROR);
+    REQUIRE(MULOG_RET_CODE_NOT_FOUND == ret);
+}
+
+TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestAllLogLevelsFiltered", "[mulog]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    ret = mulog_set_log_level(MULOG_LOG_LVL_COUNT);
+    REQUIRE(MULOG_RET_CODE_INVALID_ARG == ret);
+}
+
+TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestVeryLongMessage", "[mulog]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    const std::string very_long(256, 'L');
+    REQUIRE_CALL(output_mock, test_output(get_log_buffer(), trompeloeil::_));
+    MULOG_LOG_DBG("%s", very_long.c_str());
+}
+
+TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestBufferBoundary", "[mulog]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    // Message that exactly fits the buffer
+    const std::string exact_fit(buffer.size() - 30, 'X');
+    REQUIRE_CALL(output_mock, test_output(get_log_buffer(), trompeloeil::_));
+    MULOG_LOG_DBG("%s", exact_fit.c_str());
+}
+
+TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestSetChannelAfterGlobalChange", "[mulog]")
+{
+    auto ret = mulog_add_output(test_output);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    ret = mulog_set_log_level(MULOG_LOG_LVL_ERROR);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    ret = mulog_set_channel_log_level(test_output, MULOG_LOG_LVL_DEBUG);
+    REQUIRE(MULOG_RET_CODE_OK == ret);
+
+    // Debug should now work because channel level is DEBUG
+    const auto expected = generate_expected_output("test", MULOG_LOG_LVL_DEBUG, buffer.size() - 1);
+    REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
+    MULOG_LOG_DBG("test");
+}
