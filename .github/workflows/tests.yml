@@ -28,7 +28,7 @@ jobs:
       - name: Install gcovr
         run: |
           python3 -m venv venv
-          source venv/bin/activate
+          . venv/bin/activate
           pip install pipx
           pipx install gcovr
           pipx ensurepath
@@ -62,7 +62,7 @@ jobs:
       - name: Install gcovr
         run: |
           python3 -m venv venv
-          source venv/bin/activate
+          . venv/bin/activate
           pip install pipx
           pipx install gcovr
           pipx ensurepath
