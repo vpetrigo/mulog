@@ -436,27 +436,22 @@ TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestAllLogLevelMa
     ret = mulog_set_log_level(MULOG_LOG_LVL_TRACE);
     REQUIRE(MULOG_RET_CODE_OK == ret);
 
-    // Test MULOG_LOG_TRACE macro
     auto expected = generate_expected_output(test_str, MULOG_LOG_LVL_TRACE, buffer.size() - 1);
     REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
     MULOG_LOG_TRACE("%s", test_str.c_str());
 
-    // Test MULOG_LOG_DBG macro
     expected = generate_expected_output(test_str, MULOG_LOG_LVL_DEBUG, buffer.size() - 1);
     REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
     MULOG_LOG_DBG("%s", test_str.c_str());
 
-    // Test MULOG_LOG_INFO macro
     expected = generate_expected_output(test_str, MULOG_LOG_LVL_INFO, buffer.size() - 1);
     REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
     MULOG_LOG_INFO("%s", test_str.c_str());
 
-    // Test MULOG_LOG_WARN macro
     expected = generate_expected_output(test_str, MULOG_LOG_LVL_WARNING, buffer.size() - 1);
     REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
     MULOG_LOG_WARN("%s", test_str.c_str());
 
-    // Test MULOG_LOG_ERR macro
     expected = generate_expected_output(test_str, MULOG_LOG_LVL_ERROR, buffer.size() - 1);
     REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
     MULOG_LOG_ERR("%s", test_str.c_str());
@@ -468,16 +463,13 @@ TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestLogLevelFilte
     auto ret = mulog_add_output(test_output);
     REQUIRE(MULOG_RET_CODE_OK == ret);
 
-    // Set log level to INFO - should filter out TRACE and DEBUG
     ret = mulog_set_log_level(MULOG_LOG_LVL_INFO);
     REQUIRE(MULOG_RET_CODE_OK == ret);
 
-    // TRACE and DEBUG should be filtered
     FORBID_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
     MULOG_LOG_TRACE("%s", test_str.c_str());
     MULOG_LOG_DBG("%s", test_str.c_str());
 
-    // INFO, WARN, ERROR should pass through
     auto expected = generate_expected_output(test_str, MULOG_LOG_LVL_INFO, buffer.size() - 1);
     REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
     MULOG_LOG_INFO("%s", test_str.c_str());
@@ -497,22 +489,18 @@ TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestChannelLogLev
     auto ret = mulog_add_output(test_output);
     REQUIRE(MULOG_RET_CODE_OK == ret);
 
-    // Start with TRACE level
     ret = mulog_set_log_level(MULOG_LOG_LVL_TRACE);
     REQUIRE(MULOG_RET_CODE_OK == ret);
 
-    // Update channel to ERROR level
     ret = mulog_set_channel_log_level(test_output, MULOG_LOG_LVL_ERROR);
     REQUIRE(MULOG_RET_CODE_OK == ret);
 
-    // Lower level logs should be filtered
     FORBID_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
     MULOG_LOG_TRACE("%s", test_str.c_str());
     MULOG_LOG_DBG("%s", test_str.c_str());
     MULOG_LOG_INFO("%s", test_str.c_str());
     MULOG_LOG_WARN("%s", test_str.c_str());
 
-    // ERROR should pass through
     const auto expected = generate_expected_output(test_str, MULOG_LOG_LVL_ERROR, buffer.size() - 1);
     REQUIRE_CALL(output_mock, test_output(get_log_buffer(), expected.size()));
     MULOG_LOG_ERR("%s", test_str.c_str());
@@ -526,16 +514,13 @@ TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestGlobalLogLeve
     ret = mulog_add_output(multi_output_2);
     REQUIRE(MULOG_RET_CODE_OK == ret);
 
-    // Set global level to DEBUG
     ret = mulog_set_log_level(MULOG_LOG_LVL_DEBUG);
     REQUIRE(MULOG_RET_CODE_OK == ret);
 
-    // TRACE should be filtered for both outputs
     FORBID_CALL(output_mock, multi_output_1(trompeloeil::_, trompeloeil::_));
     FORBID_CALL(output_mock, multi_output_2(trompeloeil::_, trompeloeil::_));
     MULOG_LOG_TRACE("%s", test_str.c_str());
 
-    // DEBUG should work for both
     const auto expected = generate_expected_output(test_str, MULOG_LOG_LVL_DEBUG, buffer.size() - 1);
     REQUIRE_CALL(output_mock, multi_output_1(get_log_buffer(), expected.size()));
     REQUIRE_CALL(output_mock, multi_output_2(get_log_buffer(), expected.size()));
@@ -547,14 +532,11 @@ TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestResetClearsOu
     auto ret = mulog_add_output(test_output);
     REQUIRE(MULOG_RET_CODE_OK == ret);
 
-    // Verify output is registered
     REQUIRE_CALL(output_mock, test_output(buffer.data(), trompeloeil::_));
     MULOG_LOG_DBG("before reset");
 
-    // Reset should clear outputs
     mulog_reset();
 
-    // No output should be called after reset
     FORBID_CALL(output_mock, test_output(trompeloeil::_, trompeloeil::_));
     MULOG_LOG_DBG("after reset");
 }
@@ -566,15 +548,12 @@ TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestUnregisterAll
     ret = mulog_add_output(multi_output_2);
     REQUIRE(MULOG_RET_CODE_OK == ret);
 
-    // Verify both outputs work
     REQUIRE_CALL(output_mock, multi_output_1(buffer.data(), trompeloeil::_));
     REQUIRE_CALL(output_mock, multi_output_2(buffer.data(), trompeloeil::_));
     MULOG_LOG_DBG("before unregister");
 
-    // Unregister all
     mulog_unregister_all_outputs();
 
-    // No output should be called
     FORBID_CALL(output_mock, multi_output_1(trompeloeil::_, trompeloeil::_));
     FORBID_CALL(output_mock, multi_output_2(trompeloeil::_, trompeloeil::_));
     MULOG_LOG_DBG("after unregister");
@@ -608,7 +587,6 @@ TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestMultipleSeque
     auto ret = mulog_add_output(test_output);
     REQUIRE(MULOG_RET_CODE_OK == ret);
 
-    // Log multiple messages in sequence
     for (int i = 0; i < 10; ++i) {
         REQUIRE_CALL(output_mock, test_output(get_log_buffer(), trompeloeil::_));
         MULOG_LOG_DBG("Message %d", i);
@@ -620,24 +598,19 @@ TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestBufferOverwri
     auto ret = mulog_add_output(test_output);
     REQUIRE(MULOG_RET_CODE_OK == ret);
 
-    // Create a string that will definitely overflow the buffer
     const std::string huge_input(1024, 'X');
     REQUIRE_CALL(output_mock, test_output(get_log_buffer(), trompeloeil::_));
     const auto bytes_written = MULOG_LOG_DBG("%s", huge_input.c_str());
-
-    // Should be truncated to buffer size - 1
     REQUIRE(bytes_written == buffer.size() - 1);
 }
 
 TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestAddSameOutputTwice", "[mulog]")
 {
-    // Add the same output twice - should succeed both times
     auto ret = mulog_add_output(test_output);
     REQUIRE(MULOG_RET_CODE_OK == ret);
     ret = mulog_add_output(test_output);
     REQUIRE(MULOG_RET_CODE_OK == ret);
 
-    // Both registrations should trigger output (called twice)
     REQUIRE_CALL(output_mock, test_output(get_log_buffer(), trompeloeil::_)).TIMES(2);
     MULOG_LOG_DBG("test");
 }
@@ -646,19 +619,16 @@ TEST_CASE_METHOD(MulogTestsWithBuffer, "MulogTestsWithBuffer - TestPerOutputLogL
 {
     const std::string test_str{"test"};
 
-    // Add two outputs with different log levels
     auto ret = mulog_add_output_with_log_level(multi_output_1, MULOG_LOG_LVL_ERROR);
     REQUIRE(MULOG_RET_CODE_OK == ret);
     ret = mulog_add_output_with_log_level(multi_output_2, MULOG_LOG_LVL_TRACE);
     REQUIRE(MULOG_RET_CODE_OK == ret);
 
-    // TRACE should only go to output_2
     const auto expected = generate_expected_output(test_str, MULOG_LOG_LVL_TRACE, buffer.size() - 1);
     FORBID_CALL(output_mock, multi_output_1(trompeloeil::_, trompeloeil::_));
     REQUIRE_CALL(output_mock, multi_output_2(get_log_buffer(), expected.size()));
     MULOG_LOG_TRACE("%s", test_str.c_str());
 
-    // ERROR should go to both
     const auto expected_err = generate_expected_output(test_str, MULOG_LOG_LVL_ERROR, buffer.size() - 1);
     REQUIRE_CALL(output_mock, multi_output_1(get_log_buffer(), expected_err.size()));
     REQUIRE_CALL(output_mock, multi_output_2(get_log_buffer(), expected_err.size()));
