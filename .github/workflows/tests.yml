@@ -16,26 +16,30 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag: [ 13, 14, 15 ]
+        tag: [ 9, 10, 11, 12, 13, 14, 15 ]
         config: [ default-deferred, default-realtime ]
 
     steps:
       - name: Install dependencies
-        run: apt update && apt install cmake ninja-build python3-pip git -y
+        run: apt update && apt install unzip curl python3-pip git python3-venv -y
       - uses: actions/checkout@v5
         with:
           submodules: true
-      - name: Install gcovr
-        run: pip install --break-system-packages gcovr
-      - name: Install dependencies (Clang)
-        if: matrix.compiler == 'clang'
-        run: apt install llvm-${{ matrix.tag }} -y
-      - name: Set compiler environment (Clang)
-        if: matrix.compiler == 'clang'
+      - name: Install CMake and Ninja
         run: |
-          echo "CC=clang" >> $GITHUB_ENV
-          echo "CXX=clang++" >> $GITHUB_ENV
-          echo "PATH=/usr/lib/llvm-${{ matrix.tag }}/bin:$PATH" >> $GITHUB_ENV
+          curl https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-linux-x86_64.tar.gz -Lo cmake.tar.gz
+          curl https://github.com/ninja-build/ninja/releases/download/v1.13.1/ninja-linux.zip -Lo ninja.zip
+          mkdir -p $HOME/.local
+          tar -xzf cmake.tar.gz -C $HOME/.local --strip-components=1
+          unzip ninja.zip -d $HOME/.local/bin
+      - name: Install gcovr
+        run: |
+          python3 -m venv venv
+          . venv/bin/activate
+          pip install pipx
+          pipx install gcovr
+          pipx ensurepath
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
       - name: Run tests with coverage options
         run: |
           cmake --preset ${{ matrix.config }}
@@ -54,16 +58,28 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tag: [ 19, 20 ]
+        tag: [ 15, 16, 17, 18, 19, 20 ]
         config: [ default-deferred, default-realtime ]
     steps:
       - name: Install dependencies
-        run: apt update && apt install cmake ninja-build python3-pip git -y
+        run: apt update && apt install unzip curl python3-pip git python3-venv -y
       - uses: actions/checkout@v5
         with:
           submodules: true
+      - name: Install CMake and Ninja
+        run: |
+          curl https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-linux-x86_64.tar.gz -Lo cmake.tar.gz
+          curl https://github.com/ninja-build/ninja/releases/download/v1.13.1/ninja-linux.zip -Lo ninja.zip
+          mkdir -p $HOME/.local
+          tar -xzf cmake.tar.gz -C $HOME/.local --strip-components=1
+          unzip ninja.zip -d $HOME/.local/bin
       - name: Install gcovr
-        run: pip install --break-system-packages gcovr
+        run: |
+          python3 -m venv venv
+          . venv/bin/activate
+          pip install pipx
+          pipx install gcovr
+          echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
       - name: Install dependencies (Clang)
         run: apt install llvm-${{ matrix.tag }} -y
       - name: Set compiler environment (Clang)

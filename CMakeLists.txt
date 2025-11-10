@@ -48,7 +48,11 @@ if (MULOG_ENABLE_TESTING)
             GIT_REPOSITORY https://github.com/rollbear/trompeloeil.git
             GIT_TAG v49
             EXCLUDE_FROM_ALL)
-    list(APPEND dependencies test_library mock_library)
+    FetchContent_Declare(fmt_library
+            GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+            GIT_TAG 12.1.0
+            EXCLUDE_FROM_ALL)
+    list(APPEND dependencies test_library mock_library fmt_library)
     enable_testing()
     add_subdirectory(src/)
 

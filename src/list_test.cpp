@@ -108,7 +108,7 @@ TEST_CASE("ListTests - AddMultipleItemsAndRemoveAll", "[list]")
     LIST_HEAD(head);
     std::array<list_node, 10> nodes{};
 
-    std::ranges::for_each(nodes, [&head](list_node &node) {
+    std::for_each(std::begin(nodes), std::end(nodes), [&head](list_node &node) {
         LIST_NODE_INIT(&node);
         list_head_add(&head, &node);
     });
@@ -127,7 +127,7 @@ TEST_CASE("ListTests - AddMultipleItemsAndRemoveAll", "[list]")
     }
 
     REQUIRE(id == 0);
-    std::ranges::for_each(nodes, [](list_node &node) {
+    std::for_each(std::begin(nodes), std::end(nodes), [](list_node &node) {
         list_head_del(&node);
     });
     REQUIRE(list_head_empty(&head));
