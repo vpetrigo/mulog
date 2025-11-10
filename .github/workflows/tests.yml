@@ -61,7 +61,7 @@ jobs:
         config: [ default-deferred, default-realtime ]
     steps:
       - name: Install dependencies
-        run: apt update && apt install cmake ninja-build python3-pip git python3-venv -y
+        run: apt update && apt install curl python3-pip git python3-venv -y
       - uses: actions/checkout@v5
         with:
           submodules: true
