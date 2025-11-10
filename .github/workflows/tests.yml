@@ -69,6 +69,7 @@ jobs:
         run: |
           curl https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2-linux-x86_64.tar.gz -Lo cmake.tar.gz
           curl https://github.com/ninja-build/ninja/releases/download/v1.13.1/ninja-linux.zip -Lo ninja.zip
+          mkdir -p $HOME/.local
           tar -xzf cmake.tar.gz -C $HOME/.local --strip-components=1
           unzip ninja.zip -d $HOME/.local/bin
       - name: Install gcovr
