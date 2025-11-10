@@ -219,6 +219,14 @@ void interface_unregister_all_outputs(void)
 
 void interface_reset(void)
 {
+    handles.out_count = 0;
+    log_ctx.global_level = MULOG_LOG_LVL_DEBUG;
+    LIST_HEAD_INIT(&handles.out_functions);
+
+    for (size_t i = 0; i < ARRAY_SIZE(handles.fns); ++i) {
+        LIST_NODE_INIT(&handles.fns[i].node);
+    }
+
     lwrb_reset(&log_ctx.ring_buf);
     lwrb_free(&log_ctx.ring_buf);
 }
