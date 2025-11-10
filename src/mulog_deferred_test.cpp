@@ -70,7 +70,7 @@ namespace {
             return view;
         } else {
             auto view =
-                std::format("{}: {}{}", log_levels[log_level], input, MULOG_LOG_LINE_TERMINATION);
+                fmt::format("{}: {}{}", log_levels[log_level], input, MULOG_LOG_LINE_TERMINATION);
 
             return view.size() < max_size ? view : view.substr(0, max_size);
         }
